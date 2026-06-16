@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "Diag' Seconde Vie",
+    "slug": "diag-seconde-vie",
+    "scheme": "diag-seconde-vie",
+    "orientation": "portrait",
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.diag-seconde-vie"
+    },
+    "plugins": [
+      "expo-router"
+    ]
+  }
+}
