@@ -18,21 +18,42 @@ import {
 
 // ─── Design tokens ─────────────────────────────────────────────────────────────
 
+// const C = {
+//   blue: "#1A2EFF",
+//   navy: "#060D2E",
+//   bgPage: "#F5F5F5",
+//   card: "#FFFFFF",
+//   text: "#0B0D2E",
+//   textMuted: "#6B7280",
+//   border: "#E2E4EF",
+//   blueLight: "#ECEEFF",
+//   orange: "#FF6600",
+//   orangeLight: "#FFF0E6",
+//   green: "#16A34A",
+//   greenLight: "#DCFCE7",
+//   red: "#DC2626",
+//   redLight: "#FEE2E2",
+//   amberLight: "#FEF3C7",
+//   amber: "#D97706",
+// };
+
 const C = {
-  blue: "#1A2EFF",
-  navy: "#060D2E",
-  bgPage: "#F5F5F5",
+  blue: "#3643BA",
+  navy: "#3643BA",
+  bgPage: "#FFFFFF",
   card: "#FFFFFF",
-  text: "#0B0D2E",
-  textMuted: "#6B7280",
-  border: "#E2E4EF",
-  blueLight: "#ECEEFF",
-  orange: "#FF6600",
-  orangeLight: "#FFF0E6",
-  green: "#16A34A",
-  greenLight: "#DCFCE7",
-  red: "#DC2626",
-  redLight: "#FEE2E2",
+  text: "#1A1A1A",
+  textMuted: "#999999",
+  border: "#DDDDDD",
+  blueLight: "#E8EAFB",
+  orange: "#A05000",
+  orangeLight: "#FFF4E0",
+  green: "#1A7A45",
+  greenLight: "#E6F5EE",
+  green2: "#149B65",
+  greenLight2: "#94FFB8",
+  red: "#A01010",
+  redLight: "#FFF0F0",
   amberLight: "#FEF3C7",
   amber: "#D97706",
 };
@@ -40,7 +61,7 @@ const C = {
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
 type ScreenId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
-type StatusType = "pending" | "accepted" | "refused" | "conditional";
+type StatusType = "pending" | "accepted" | "refused" | "conditional" | "seller";
 
 // ─── Shared atoms ─────────────────────────────────────────────────────────────
 
@@ -49,6 +70,7 @@ const STATUS_LABEL: Record<StatusType, string> = {
   accepted: "Accepté",
   refused: "Refusé",
   conditional: "Reprise conditionnelle",
+  seller: "Mode vendeur",
 };
 
 const STATUS_STYLE: Record<StatusType, React.CSSProperties> = {
@@ -56,6 +78,7 @@ const STATUS_STYLE: Record<StatusType, React.CSSProperties> = {
   accepted: { backgroundColor: C.greenLight, color: C.green },
   refused: { backgroundColor: C.redLight, color: C.red },
   conditional: { backgroundColor: C.orangeLight, color: C.orange },
+  seller: { backgroundColor: C.blueLight, color: C.blue }
 };
 
 function StatusBadge({ status }: { status: StatusType }) {
@@ -314,16 +337,32 @@ const DOSSIERS = [
   { name: "Sophie Chen", initials: "SC", bike: "Électrique B'Twin", ref: "DEC-00479", time: "4h", status: "refused" as StatusType },
 ];
 
+function Logo() {
+  return (
+    <svg width="18" height="15" viewBox="0 0 18 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g clip-path="url(#clip0_79_1557)">
+        <path d="M13.1944 11.6015C13.1944 10.5993 13.1953 9.61066 13.1929 8.62174C13.1929 8.54453 13.237 8.50365 13.2834 8.45672C14.0533 7.67643 14.7384 6.83315 15.2545 5.86483C15.5991 5.21806 15.861 4.54405 15.9257 3.80857C16.0447 2.46114 15.409 1.55731 14.088 1.1988C13.4128 1.01562 12.7246 1.00411 12.0365 1.09495C9.88267 1.37987 8.00509 2.31913 6.24618 3.52182C4.88928 4.44958 3.68294 5.54054 2.69984 6.85707C2.08012 7.68703 1.57937 8.57754 1.36134 9.60006C1.27456 10.0076 1.24114 10.4188 1.31044 10.8318C1.44843 11.6539 2.04976 11.9997 2.80533 11.9182C3.5517 11.8377 4.1561 11.4531 4.72369 11.0062C5.6841 10.2502 6.48904 9.34239 7.26823 8.41342C8.69351 6.71446 10.0081 4.93495 11.2055 3.07187C11.2215 3.04705 11.239 3.02343 11.2638 2.988C11.3058 3.04735 11.2914 3.10336 11.2914 3.15423C11.2926 6.37352 11.292 9.5928 11.296 12.8121C11.296 12.9208 11.2411 12.9617 11.1638 13.0065C9.65514 13.8788 8.06243 14.5377 6.33388 14.8426C5.10393 15.0594 3.8749 15.0876 2.66949 14.7012C1.62536 14.3666 0.799571 13.7638 0.334086 12.7491C0.0231487 12.0693 -0.0446196 11.3514 0.0252952 10.6187C0.174324 9.05928 0.860593 7.71428 1.76949 6.46738C3.01845 4.75328 4.59398 3.38224 6.39153 2.25373C7.63374 1.47404 8.95293 0.855136 10.3693 0.447276C11.4187 0.14509 12.487 -0.032649 13.5833 0.00459435C14.6194 0.0397182 15.6096 0.250764 16.4804 0.843025C17.3562 1.43862 17.841 2.27038 17.9655 3.30926C18.0918 4.36449 17.8634 5.36552 17.4623 6.33355C16.8358 7.84599 15.8662 9.12892 14.7145 10.2868C14.2879 10.7155 13.8365 11.1174 13.3643 11.4961C13.318 11.5334 13.2775 11.5812 13.1947 11.6012L13.1944 11.6015Z" fill="white" />
+      </g>
+      <defs>
+        <clipPath id="clip0_79_1557">
+          <rect width="18" height="15" fill="white" />
+        </clipPath>
+      </defs>
+    </svg>
+  );
+}
+
 function Screen1({ go }: { go: (s: ScreenId) => void }) {
   return (
     <div className="flex flex-col h-full">
       <div className="flex-shrink-0 px-6 pt-5 pb-5" style={{ backgroundColor: C.navy }}>
-        <p className="text-xs font-bold tracking-[0.15em] uppercase mb-3" style={{ color: "rgba(255,255,255,0.5)" }}>
-          DECATHLON · Seconde Vie
+        <p className="text-xs font-bold tracking-[0.15em] uppercase mb-3" style={{ color: "#FFFFFF", display: "flex", alignItems: "center", gap: 4 }}>
+          {Logo()}<span style={{ marginLeft: "3px" }}> DECATHLON <span style={{ color: "rgba(255,255,255,0.5)" }}>· Seconde Vie</span></span>
         </p>
         <h1 className="text-2xl font-bold text-white">Diagnostic reprise</h1>
-        <p className="text-sm mt-0.5" style={{ color: "rgba(255,255,255,0.6)" }}>Mode vendeur</p>
-        <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+        {/* <p className="text-sm mt-0.5" style={{ color: "rgba(255,255,255,0.6)" }}>Mode vendeur</p> */}
+        <StatusBadge status={"seller"} />
+        <p className="text-xs mt-1" style={{ color: "#FFFFFF" }}>
           Julien M. · Magasin Paris-Montparnasse
         </p>
       </div>
@@ -905,7 +944,7 @@ function Screen11({ go }: { go: (s: ScreenId) => void }) {
 
 // ─── Screen 12 — Acceptée ─────────────────────────────────────────────────────
 
-const QR_PATTERN = [1,1,1,0,1,1,0,0,0,1,1,1,1,0,0,1,0,1,0,1,1,1,1,0,1];
+const QR_PATTERN = [1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 1];
 
 function Screen12({ go }: { go: (s: ScreenId) => void }) {
   return (
@@ -1069,49 +1108,50 @@ export default function App() {
     <div className="flex flex-col min-h-screen" style={{ backgroundColor: C.bgPage, fontFamily: "Inter, system-ui, sans-serif" }}>
 
       {/* Top bar */}
-      <header
-        className="flex-shrink-0 flex items-center justify-between px-4 md:px-6 h-14 border-b"
-        style={{ backgroundColor: C.navy, borderColor: "rgba(255,255,255,0.06)" }}
-      >
-        <div className="flex items-center gap-3">
-          <button
+      {/* <header
+        className="flex-shrink-0 flex items-center justify-between px-4 md:px-6 h-14"
+        style={{ backgroundColor: C.navy }}
+      > */}
+      {/* borderColor: "rgba(255,255,255,0.06)" border-b */}
+      {/* <div className="flex items-center gap-3"> */}
+      {/* <button
             className="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
             style={{ color: "rgba(255,255,255,0.7)" }}
             onClick={() => setSidebarOpen((o) => !o)}
             aria-label="Menu"
           >
             <Menu size={18} />
-          </button>
-          <span className="text-white font-bold text-sm tracking-[0.1em] uppercase">
+          </button> */}
+      {/* <span className="text-white font-bold text-sm tracking-[0.1em] uppercase">
             DECATHLON · Seconde Vie
           </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div
+        </div> */}
+      {/* <div className="flex items-center gap-2"> */}
+      {/* <div
             className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white"
             style={{ backgroundColor: C.blue }}
           >
             JM
-          </div>
-          <span className="hidden sm:block text-xs" style={{ color: "rgba(255,255,255,0.6)" }}>
+          </div> */}
+      {/* <span className="hidden sm:block text-xs" style={{ color: "rgba(255,255,255,0.6)" }}>
             Julien M.
-          </span>
-        </div>
-      </header>
+          </span> */}
+      {/* </div> */}
+      {/* </header> */}
 
       <div className="flex flex-1 overflow-hidden" style={{ height: "calc(100vh - 56px)" }}>
 
         {/* Sidebar overlay (mobile) */}
-        {sidebarOpen && (
+        {/* {sidebarOpen && (
           <div
             className="fixed inset-0 z-20 lg:hidden"
             style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
             onClick={() => setSidebarOpen(false)}
           />
-        )}
+        )} */}
 
         {/* Sidebar */}
-        <aside
+        {/* <aside
           className={`
             fixed lg:static inset-y-0 left-0 z-30 lg:z-auto
             flex flex-col flex-shrink-0 overflow-y-auto
@@ -1152,7 +1192,7 @@ export default function App() {
               })}
             </div>
           ))}
-        </aside>
+        </aside> */}
 
         {/* Main content */}
         <main className="flex-1 overflow-hidden flex flex-col">

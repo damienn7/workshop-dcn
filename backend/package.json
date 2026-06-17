@@ -1,0 +1,23 @@
+{
+  "name": "diag-seconde-vie-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "zod": "^3.22.2"
+  },
+  "devDependencies": {
+    "tsx": "^3.12.7",
+    "typescript": "^5.4.2",
+    "@types/express": "^4.17.17",
+    "@types/node": "^18.16.19"
+  }
+}
