@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ArrowLeft,
   QrCode,
@@ -15,6 +15,9 @@ import {
   FileText,
   Settings,
 } from "lucide-react";
+import diagApi from "../imports/diagApi";
+import type { CaseListItem, BuybackCase } from "../imports/api.types";
+import { setCurrentCase, getCurrentCase, subscribeCurrentCase } from "../imports/currentCase";
 
 // ─── Design tokens ─────────────────────────────────────────────────────────────
 
@@ -353,6 +356,71 @@ function Logo() {
 }
 
 function Screen1({ go }: { go: (s: ScreenId) => void }) {
+  const [dossiers, setDossiers] = useState(DOSSIERS);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    setLoading(true);
+    setError(null);
+    diagApi
+      .listCases()
+      .then((list: CaseListItem[]) => {
+        if (!mounted) return;
+        const mapped = list.map((c) => {
+          const initials = (c.customerName || "")
+            .split(" ")
+            .map((n) => n[0] ?? "")
+            .slice(0, 2)
+            .join("")
+            .toUpperCase();
+          return {
+            name: c.customerName,
+            initials,
+            bike: c.itemLabel,
+            ref: c.caseNumber,
+            time: "",
+            status: c.status as StatusType,
+          } as typeof DOSSIERS[0];
+        });
+        setDossiers(mapped.length ? mapped : DOSSIERS);
+      })
+      .catch(() => {
+        if (!mounted) return;
+        setError("API indisponible, affichage des données locales.");
+        setDossiers(DOSSIERS);
+      })
+      .finally(() => {
+        if (!mounted) return;
+        setLoading(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const handleOpenCase = async (caseNumber: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const c = await diagApi.getCase(caseNumber);
+      setCurrentCase(c as BuybackCase);
+      go(2);
+    } catch (err: any) {
+      setError(err?.message ?? 'Aucun dossier trouvé pour ce numéro.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearch = async (term: string) => {
+    if (!term || term.trim().length === 0) return;
+    await handleOpenCase(term.trim());
+  };
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex-shrink-0 px-6 pt-5 pb-5" style={{ backgroundColor: C.navy }}>
@@ -403,6 +471,9 @@ function Screen1({ go }: { go: (s: ScreenId) => void }) {
                   placeholder="N° dossier ex: DEC-00487"
                   className="w-full h-11 pl-9 pr-4 rounded-xl border text-sm outline-none transition-colors"
                   style={{ backgroundColor: C.card, borderColor: C.border, color: C.text }}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.currentTarget.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void handleSearch(searchTerm); } }}
                   onFocus={(e) => (e.currentTarget.style.borderColor = C.blue)}
                   onBlur={(e) => (e.currentTarget.style.borderColor = C.border)}
                 />
@@ -415,11 +486,11 @@ function Screen1({ go }: { go: (s: ScreenId) => void }) {
           <div>
             <SectionLabel>DOSSIERS EN ATTENTE</SectionLabel>
             <Card>
-              {DOSSIERS.map((d, i) => (
+              {dossiers.map((d, i) => (
                 <button
                   key={d.ref}
-                  onClick={() => go(2)}
-                  className={`w-full flex items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-gray-50 ${i < DOSSIERS.length - 1 ? "border-b" : ""}`}
+                  onClick={() => { void handleOpenCase(d.ref); }}
+                  className={`w-full flex items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-gray-50 ${i < dossiers.length - 1 ? "border-b" : ""}`}
                   style={{ borderColor: C.border }}
                 >
                   <div
@@ -448,6 +519,23 @@ function Screen1({ go }: { go: (s: ScreenId) => void }) {
 // ─── Screen 2 — Scanner ────────────────────────────────────────────────────────
 
 function Screen2({ go }: { go: (s: ScreenId) => void }) {
+  const [scanLoading, setScanLoading] = useState(false);
+  const [scanError, setScanError] = useState<string | null>(null);
+
+  const handleSimulate = async () => {
+    setScanLoading(true);
+    setScanError(null);
+    try {
+      const c = await diagApi.getCase('DEC-00487');
+      setCurrentCase(c as BuybackCase);
+      go(2);
+    } catch (err: any) {
+      setScanError(err?.message ?? 'Erreur API');
+    } finally {
+      setScanLoading(false);
+    }
+  };
+
   return (
     <PageShell title="Scanner QR code" subtitle="Cadre le QR code du dossier client dans le viseur" onBack={() => go(0)} backLabel="Retour">
       {/* Viewfinder */}
@@ -475,9 +563,9 @@ function Screen2({ go }: { go: (s: ScreenId) => void }) {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
-        <PrimaryButton onClick={() => go(2)}>
+        <PrimaryButton onClick={() => { void handleSimulate(); }}>
           <Check size={14} />
-          Simuler la lecture (DEC-00487)
+          {scanLoading ? 'Ouverture...' : 'Simuler la lecture (DEC-00487)'}
         </PrimaryButton>
         <button
           onClick={() => go(0)}
@@ -487,6 +575,9 @@ function Screen2({ go }: { go: (s: ScreenId) => void }) {
           Annuler
         </button>
       </div>
+      {scanError && (
+        <p className="text-xs mt-2" style={{ color: C.red }}>{scanError}</p>
+      )}
     </PageShell>
   );
 }
@@ -495,6 +586,19 @@ function Screen2({ go }: { go: (s: ScreenId) => void }) {
 
 function Screen3({ go }: { go: (s: ScreenId) => void }) {
   const [tab, setTab] = useState<"client" | "prediag" | "photos">("client");
+  const [caseData, setCaseData] = useState<BuybackCase | null>(getCurrentCase());
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const unsub = subscribeCurrentCase((c) => setCaseData(c));
+    // try to fetch if no caseData
+    if (!caseData) {
+      const defaultNumber = 'DEC-00487';
+      void diagApi.getCase(defaultNumber).then((c) => setCurrentCase(c as BuybackCase)).catch(() => {});
+    }
+    return unsub;
+  }, []);
   const tabs = [
     { key: "client", label: "Client" },
     { key: "prediag", label: "Pré-diagnostic" },
@@ -502,22 +606,22 @@ function Screen3({ go }: { go: (s: ScreenId) => void }) {
   ] as const;
 
   return (
-    <PageShell title="Dossier DEC-00487" onBack={() => go(0)} backLabel="Accueil">
+    <PageShell title={`Dossier ${caseData?.caseNumber ?? 'DEC-00487'}`} onBack={() => go(0)} backLabel="Accueil">
       {/* Scores */}
       <div className="grid grid-cols-2 gap-3">
         <Card className="py-4 text-center">
-          <p className="text-3xl font-bold" style={{ color: C.blue }}>72</p>
+          <p className="text-3xl font-bold" style={{ color: C.blue }}>{caseData?.customerScore ?? 72}</p>
           <p className="text-xs mt-1" style={{ color: C.textMuted }}>Score client</p>
         </Card>
         <Card className="py-4 text-center">
-          <p className="text-3xl font-bold" style={{ color: C.green }}>85 €</p>
+          <p className="text-3xl font-bold" style={{ color: C.green }}>{caseData?.onlineEstimate ? `${caseData.onlineEstimate} €` : '—'}</p>
           <p className="text-xs mt-1" style={{ color: C.textMuted }}>Estimation ligne</p>
         </Card>
       </div>
 
       <div className="flex items-center gap-2">
-        <span className="text-sm font-semibold" style={{ color: C.text }}>Marie Dupont</span>
-        <StatusBadge status="pending" />
+        <span className="text-sm font-semibold" style={{ color: C.text }}>{caseData ? `${caseData.customer.firstName} ${caseData.customer.lastName}` : 'Marie Dupont'}</span>
+        <StatusBadge status={(caseData?.status ?? 'pending') as any} />
       </div>
 
       {/* Tabs */}
@@ -540,17 +644,32 @@ function Screen3({ go }: { go: (s: ScreenId) => void }) {
       {tab === "client" && (
         <>
           <Card className="p-4">
-            <InfoField label="Nom" value="Marie Dupont" />
-            <InfoField label="Téléphone" value="06 12 34 56 78" />
-            <InfoField label="Email" value="marie.dupont@email.fr" />
-            <InfoField label="Modèle déclaré" value="B'Twin Rockrider 520" />
-            <InfoField label="Année" value="2019" />
-            <InfoField label="Km déclarés" value="~2 500 km" />
+            <InfoField label="Nom" value={caseData ? `${caseData.customer.firstName} ${caseData.customer.lastName}` : 'Marie Dupont'} />
+            <InfoField label="Téléphone" value={caseData?.customer.phone ?? '06 12 34 56 78'} />
+            <InfoField label="Email" value={caseData?.customer.email ?? 'marie.dupont@email.fr'} />
+            <InfoField label="Modèle déclaré" value={caseData ? `${caseData.item.brand} ${caseData.item.model}` : "B'Twin Rockrider 520"} />
+            <InfoField label="Année" value={caseData?.item.year ? String(caseData.item.year) : '2019'} />
+            <InfoField label="Km déclarés" value={caseData?.item.declaredKm ? `~${caseData.item.declaredKm} km` : '~2 500 km'} />
           </Card>
           <InfoBox color="blue">
             Vérifier le modèle et l'année avant de démarrer — le client a pu se tromper.
           </InfoBox>
-          <PrimaryButton onClick={() => go(3)}>Démarrer le diagnostic</PrimaryButton>
+          <PrimaryButton onClick={async () => {
+            setLoading(true);
+            setError(null);
+            try {
+              const number = caseData?.caseNumber ?? 'DEC-00487';
+              await diagApi.startDiagnosis(number);
+              const updated = await diagApi.getCase(number);
+              setCurrentCase(updated as BuybackCase);
+              go(3);
+            } catch (err: any) {
+              setError(err?.message ?? 'Erreur démarrage diagnostic');
+            } finally {
+              setLoading(false);
+            }
+          }}>{loading ? 'Ouverture...' : 'Démarrer le diagnostic'}</PrimaryButton>
+          {error && <p className="text-xs mt-2" style={{ color: C.red }}>{error}</p>}
         </>
       )}
 
@@ -580,6 +699,9 @@ function Screen3({ go }: { go: (s: ScreenId) => void }) {
 
 function Screen4({ go }: { go: (s: ScreenId) => void }) {
   const [etat, setEtat] = useState("");
+  const [serial, setSerial] = useState<string>(getCurrentCase()?.item.serialNumber ?? '');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   return (
     <PageShell title="Vérification du vélo" subtitle="Étape 0 / 5 — Identification" onBack={() => go(2)} backLabel="Dossier">
       <Card className="p-4">
@@ -588,12 +710,24 @@ function Screen4({ go }: { go: (s: ScreenId) => void }) {
           Client a déclaré : B'Twin Rockrider 520, 2019. Vérifier et corriger si nécessaire.
         </p>
         <SectionLabel>CONFIRMER / CORRIGER LE MODÈLE</SectionLabel>
-        <InfoField label="Catégorie de vélo" value="VTT" />
-        <InfoField label="Marque" value="B'Twin" />
-        <InfoField label="Modèle exact" value="Rockrider 520" />
-        <InfoField label="Année" value="2019" />
-        <InfoField label="Numéro de série" value="Sous le pédalier" />
-        <InfoField label="Taille cadre" value="M" />
+        <InfoField label="Catégorie de vélo" value={getCurrentCase()?.item.category ?? 'VTT'} />
+        <InfoField label="Marque" value={getCurrentCase()?.item.brand ?? "B'Twin"} />
+        <InfoField label="Modèle exact" value={getCurrentCase()?.item.model ?? 'Rockrider 520'} />
+        <InfoField label="Année" value={String(getCurrentCase()?.item.year ?? '2019')} />
+        <div
+          className="flex justify-between py-2.5 border-b last:border-0"
+          style={{ borderColor: C.border }}
+        >
+          <span className="text-xs" style={{ color: C.textMuted }}>Numéro de série</span>
+          <input
+            value={serial}
+            onChange={(e) => setSerial(e.currentTarget.value)}
+            placeholder="Ex: 1234567890"
+            className="text-xs font-semibold w-40 text-right"
+            style={{ border: 0, background: 'transparent', color: C.text }}
+          />
+        </div>
+        <InfoField label="Taille cadre" value={getCurrentCase()?.item.frameSize ?? 'M'} />
       </Card>
 
       <div>
@@ -613,7 +747,34 @@ function Screen4({ go }: { go: (s: ScreenId) => void }) {
         </div>
       </Card>
 
-      <PrimaryButton onClick={() => go(4)}>Cadre & fourche →</PrimaryButton>
+      <PrimaryButton onClick={async () => {
+        setSaving(true);
+        setError(null);
+        try {
+          const current = getCurrentCase();
+          const number = current?.caseNumber ?? 'DEC-00487';
+          const payload = {
+            articleType: current?.item.articleType ?? 'bike',
+            category: current?.item.category ?? 'vtt',
+            brand: current?.item.brand ?? 'Rockrider',
+            model: current?.item.model ?? 'Rockrider 520',
+            year: current?.item.year ?? 2019,
+            frameSize: current?.item.frameSize ?? 'M',
+            serialNumber: serial,
+            estimatedBasePrice: current?.item.estimatedBasePrice ?? current?.onlineEstimate ?? 0,
+            firstLookState: etat || 'good'
+          };
+          await diagApi.saveIdentification(number, payload);
+          const updated = await diagApi.getCase(number);
+          setCurrentCase(updated as BuybackCase);
+          go(4);
+        } catch (err: any) {
+          setError(err?.message ?? 'Erreur lors de l\'identification');
+        } finally {
+          setSaving(false);
+        }
+      }}>{saving ? 'Enregistrement...' : 'Cadre & fourche →'}</PrimaryButton>
+      {error && <p className="text-xs mt-2" style={{ color: C.red }}>{error}</p>}
     </PageShell>
   );
 }
@@ -623,6 +784,32 @@ function Screen4({ go }: { go: (s: ScreenId) => void }) {
 function Screen5({ go }: { go: (s: ScreenId) => void }) {
   const [ans, setAns] = useState<Record<string, string>>({});
   const set = (k: string, v: string) => setAns((a) => ({ ...a, [k]: v }));
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleNext = async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      const current = getCurrentCase();
+      const number = current?.caseNumber ?? 'DEC-00487';
+      const payload = {
+        generalCondition: ans.cond ?? 'good',
+        impacts: ans.rayures ?? '',
+        shockDeformation: ans.choc ?? 'no',
+        fork: ans.fourche ?? 'functional',
+        wear: ans.jeu ?? 'good'
+      };
+      await diagApi.saveFrameFork(number, payload);
+      const updated = await diagApi.getCase(number);
+      setCurrentCase(updated as BuybackCase);
+      go(5);
+    } catch (err: any) {
+      setError(err?.message ?? 'Erreur sauvegarde');
+    } finally {
+      setSaving(false);
+    }
+  };
   return (
     <PageShell title="Cadre & fourche" subtitle="Étape 1 / 5" onBack={() => go(3)} backLabel="Identification">
       <Card className="p-4">
@@ -644,7 +831,8 @@ function Screen5({ go }: { go: (s: ScreenId) => void }) {
           <PhotoPlaceholder label="Zone critique" />
         </div>
       </div>
-      <NavButton onPrev={() => go(3)} prevLabel="Identification" onNext={() => go(5)} nextLabel="Freins" />
+      <NavButton onPrev={() => go(3)} prevLabel="Identification" onNext={() => { void handleNext(); }} nextLabel={saving ? 'Sauvegarde...' : 'Freins'} />
+      {error && <p className="text-xs mt-2" style={{ color: C.red }}>{error}</p>}
     </PageShell>
   );
 }
@@ -654,6 +842,31 @@ function Screen5({ go }: { go: (s: ScreenId) => void }) {
 function Screen6({ go }: { go: (s: ScreenId) => void }) {
   const [ans, setAns] = useState<Record<string, string>>({});
   const set = (k: string, v: string) => setAns((a) => ({ ...a, [k]: v }));
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleNext = async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      const current = getCurrentCase();
+      const number = current?.caseNumber ?? 'DEC-00487';
+      const payload = {
+        type: 'v_brake_pads',
+        frontEfficiency: ans.av ?? 'correct',
+        rearEfficiency: ans.ar ?? 'correct',
+        padsWear: ans.usure ?? 'replace'
+      };
+      await diagApi.saveBrakes(number, payload);
+      const updated = await diagApi.getCase(number);
+      setCurrentCase(updated as BuybackCase);
+      go(6);
+    } catch (err: any) {
+      setError(err?.message ?? 'Erreur sauvegarde');
+    } finally {
+      setSaving(false);
+    }
+  };
   return (
     <PageShell title="Freins" subtitle="Étape 2 / 5" onBack={() => go(4)} backLabel="Cadre">
       <Card className="p-4">
@@ -670,7 +883,8 @@ function Screen6({ go }: { go: (s: ScreenId) => void }) {
           <QuestionChips question="Usure patins / plaquettes" options={["Bonne épaisseur", "Usure normale", "À changer"]} selected={ans.usure} onSelect={(v) => set("usure", v)} />
         </div>
       </Card>
-      <NavButton onPrev={() => go(4)} prevLabel="Cadre" onNext={() => go(6)} nextLabel="Transmission" />
+      <NavButton onPrev={() => go(4)} prevLabel="Cadre" onNext={() => { void handleNext(); }} nextLabel={saving ? 'Sauvegarde...' : 'Transmission'} />
+      {error && <p className="text-xs mt-2" style={{ color: C.red }}>{error}</p>}
     </PageShell>
   );
 }
@@ -680,6 +894,30 @@ function Screen6({ go }: { go: (s: ScreenId) => void }) {
 function Screen7({ go }: { go: (s: ScreenId) => void }) {
   const [ans, setAns] = useState<Record<string, string>>({});
   const set = (k: string, v: string) => setAns((a) => ({ ...a, [k]: v }));
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleNext = async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      const current = getCurrentCase();
+      const number = current?.caseNumber ?? 'DEC-00487';
+      const payload = {
+        chain: ans.chaine ?? 'dry',
+        derailleur: ans.derailleur ?? 'medium',
+        bottomBracket: ans.pedalier ?? 'good'
+      };
+      await diagApi.saveTransmission(number, payload);
+      const updated = await diagApi.getCase(number);
+      setCurrentCase(updated as BuybackCase);
+      go(7);
+    } catch (err: any) {
+      setError(err?.message ?? 'Erreur sauvegarde');
+    } finally {
+      setSaving(false);
+    }
+  };
   return (
     <PageShell title="Transmission" subtitle="Étape 3 / 5" onBack={() => go(5)} backLabel="Freins">
       <Card className="p-4">
@@ -692,7 +930,8 @@ function Screen7({ go }: { go: (s: ScreenId) => void }) {
           <QuestionChips question="Pédalier / boîtier" options={["OK", "Jeu / bruit", "HS"]} selected={ans.pedalier} onSelect={(v) => set("pedalier", v)} />
         </div>
       </Card>
-      <NavButton onPrev={() => go(5)} prevLabel="Freins" onNext={() => go(7)} nextLabel="Roues" />
+      <NavButton onPrev={() => go(5)} prevLabel="Freins" onNext={() => { void handleNext(); }} nextLabel={saving ? 'Sauvegarde...' : 'Roues'} />
+      {error && <p className="text-xs mt-2" style={{ color: C.red }}>{error}</p>}
     </PageShell>
   );
 }
@@ -702,6 +941,30 @@ function Screen7({ go }: { go: (s: ScreenId) => void }) {
 function Screen8({ go }: { go: (s: ScreenId) => void }) {
   const [ans, setAns] = useState<Record<string, string>>({});
   const set = (k: string, v: string) => setAns((a) => ({ ...a, [k]: v }));
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleNext = async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      const current = getCurrentCase();
+      const number = current?.caseNumber ?? 'DEC-00487';
+      const payload = {
+        rims: ans.jantes ?? 'medium',
+        tires: ans.pneus ?? 'good',
+        hubs: ans.roulements ?? 'fluid'
+      };
+      await diagApi.saveWheelsTires(number, payload);
+      const updated = await diagApi.getCase(number);
+      setCurrentCase(updated as BuybackCase);
+      go(8);
+    } catch (err: any) {
+      setError(err?.message ?? 'Erreur sauvegarde');
+    } finally {
+      setSaving(false);
+    }
+  };
   return (
     <PageShell title="Roues & pneus" subtitle="Étape 4 / 5" onBack={() => go(6)} backLabel="Transmission">
       <Card className="p-4">
@@ -713,7 +976,8 @@ function Screen8({ go }: { go: (s: ScreenId) => void }) {
           <QuestionChips question="Roulements de moyeux" options={["Fluides", "Jeu perceptible", "Durs"]} selected={ans.roulements} onSelect={(v) => set("roulements", v)} />
         </div>
       </Card>
-      <NavButton onPrev={() => go(6)} prevLabel="Transmission" onNext={() => go(8)} nextLabel="Finitions" />
+      <NavButton onPrev={() => go(6)} prevLabel="Transmission" onNext={() => { void handleNext(); }} nextLabel={saving ? 'Sauvegarde...' : 'Finitions'} />
+      {error && <p className="text-xs mt-2" style={{ color: C.red }}>{error}</p>}
     </PageShell>
   );
 }
@@ -723,6 +987,31 @@ function Screen8({ go }: { go: (s: ScreenId) => void }) {
 function Screen9({ go }: { go: (s: ScreenId) => void }) {
   const [ans, setAns] = useState<Record<string, string>>({});
   const set = (k: string, v: string) => setAns((a) => ({ ...a, [k]: v }));
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleNext = async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      const current = getCurrentCase();
+      const number = current?.caseNumber ?? 'DEC-00487';
+      const payload = {
+        saddle: ans.selle ?? 'good',
+        handlebarDirection: ans.guidon ?? 'good',
+        cleanliness: ans.proprete ?? 'cleaning_needed',
+        observations: ''
+      };
+      await diagApi.saveFinishing(number, payload);
+      const updated = await diagApi.getCase(number);
+      setCurrentCase(updated as BuybackCase);
+      go(9);
+    } catch (err: any) {
+      setError(err?.message ?? 'Erreur sauvegarde');
+    } finally {
+      setSaving(false);
+    }
+  };
   return (
     <PageShell title="Finitions" subtitle="Étape 5 / 5" onBack={() => go(7)} backLabel="Roues">
       <Card className="p-4">
@@ -745,7 +1034,8 @@ function Screen9({ go }: { go: (s: ScreenId) => void }) {
           />
         </div>
       </Card>
-      <PrimaryButton onClick={() => go(9)}>Voir le scoring</PrimaryButton>
+      <PrimaryButton onClick={() => { void handleNext(); }}>{saving ? 'Sauvegarde...' : 'Voir le scoring'}</PrimaryButton>
+      {error && <p className="text-xs mt-2" style={{ color: C.red }}>{error}</p>}
     </PageShell>
   );
 }
@@ -761,6 +1051,25 @@ const CATEGORIES = [
 ];
 
 function Screen10({ go }: { go: (s: ScreenId) => void }) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const caseData = getCurrentCase();
+
+  const handleGenerateDecision = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const number = caseData?.caseNumber ?? 'DEC-00487';
+      await diagApi.calculateScore(number);
+      const updated = await diagApi.getCase(number);
+      setCurrentCase(updated as BuybackCase);
+      go(10);
+    } catch (err: any) {
+      setError(err?.message ?? 'Erreur génération scoring');
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <PageShell title="Synthèse diagnostic" subtitle="Marie Dupont · VTT Rockrider 520" onBack={() => go(8)} backLabel="Finitions">
       <div className="grid grid-cols-2 gap-3">
@@ -828,7 +1137,8 @@ function Screen10({ go }: { go: (s: ScreenId) => void }) {
         Écart de 32% vs estimation client. Expliquer les frais de patins, nettoyage, réglage.
       </InfoBox>
 
-      <PrimaryButton onClick={() => go(10)}>Générer la décision</PrimaryButton>
+      <PrimaryButton onClick={() => { void handleGenerateDecision(); }}>{loading ? 'Génération...' : 'Générer la décision'}</PrimaryButton>
+      {error && <p className="text-xs mt-2" style={{ color: C.red }}>{error}</p>}
     </PageShell>
   );
 }
@@ -844,18 +1154,59 @@ const PRICE_LINES = [
 ];
 
 function Screen11({ go }: { go: (s: ScreenId) => void }) {
+  const caseData = getCurrentCase();
+  const score = caseData?.scoring;
+  const technicianScore = score?.technicianScore ?? 61;
+  const decisionStatus = score?.decision ?? 'conditional';
+  const finalOffer = caseData?.finalOffer ?? score?.finalOffer ?? 58;
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleAccept = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const number = caseData?.caseNumber ?? 'DEC-00487';
+      await diagApi.acceptDecision(number, { finalOffer, manualAdjustment: false, adjustmentReason: null });
+      const updated = await diagApi.getCase(number);
+      setCurrentCase(updated as BuybackCase);
+      go(11);
+    } catch (err: any) {
+      setError(err?.message ?? 'Erreur acceptation');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRefuse = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const number = caseData?.caseNumber ?? 'DEC-00487';
+      const reasons = score?.blockingReasons && score.blockingReasons.length ? score.blockingReasons : ['Reprise refusée après diagnostic'];
+      await diagApi.refuseDecision(number, { reasons, alternatives: ['Réparation atelier', 'Recyclage gratuit'] });
+      const updated = await diagApi.getCase(number);
+      setCurrentCase(updated as BuybackCase);
+      go(12);
+    } catch (err: any) {
+      setError(err?.message ?? 'Erreur refus');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <PageShell title="Décision de reprise" onBack={() => go(9)} backLabel="Synthèse">
       {/* Score + offre */}
       <Card className="p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <p className="text-xs mb-2" style={{ color: C.textMuted }}>Score technicien 61/100</p>
-            <StatusBadge status="conditional" />
-            <p className="text-xs mt-1.5" style={{ color: C.textMuted }}>Remise en état nécessaire</p>
+            <p className="text-xs mb-2" style={{ color: C.textMuted }}>Score technicien {technicianScore}/100</p>
+            <StatusBadge status={decisionStatus as any} />
+            <p className="text-xs mt-1.5" style={{ color: C.textMuted }}>{decisionStatus === 'accepted' ? 'Reprise acceptée' : decisionStatus === 'refused' ? 'Reprise refusée' : 'Remise en état nécessaire'}</p>
           </div>
           <div className="text-right">
-            <p className="text-5xl font-bold" style={{ color: C.text, letterSpacing: "-0.02em" }}>58 €</p>
+            <p className="text-5xl font-bold" style={{ color: C.text, letterSpacing: "-0.02em" }}>{finalOffer} €</p>
             <p className="text-[10px] uppercase tracking-widest mt-1" style={{ color: C.textMuted }}>offre de reprise</p>
           </div>
         </div>
@@ -924,20 +1275,21 @@ function Screen11({ go }: { go: (s: ScreenId) => void }) {
 
       <div className="flex flex-col sm:flex-row gap-3">
         <button
-          onClick={() => go(12)}
+          onClick={() => { void handleRefuse(); }}
           className="flex-1 py-3 px-6 rounded-xl border text-sm font-bold transition-colors"
           style={{ borderColor: C.red, backgroundColor: C.redLight, color: C.red }}
         >
           ✕ Refuser
         </button>
         <button
-          onClick={() => go(11)}
+          onClick={() => { void handleAccept(); }}
           className="flex-1 py-3 px-6 rounded-xl text-white text-sm font-bold transition-opacity active:opacity-80"
           style={{ backgroundColor: C.green }}
         >
-          ✓ Valider 58 €
+          {loading ? 'En cours...' : `✓ Valider ${finalOffer} €`}
         </button>
       </div>
+      {error && <p className="text-xs mt-2" style={{ color: C.red }}>{error}</p>}
     </PageShell>
   );
 }
@@ -947,6 +1299,8 @@ function Screen11({ go }: { go: (s: ScreenId) => void }) {
 const QR_PATTERN = [1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 1];
 
 function Screen12({ go }: { go: (s: ScreenId) => void }) {
+  const caseData = getCurrentCase();
+  const finalOffer = caseData?.finalOffer ?? caseData?.scoring?.finalOffer ?? 58;
   return (
     <PageShell title="Reprise acceptée" subtitle="Bon d'achat à remettre au client">
       <div className="flex flex-col items-center py-2">
@@ -969,18 +1323,18 @@ function Screen12({ go }: { go: (s: ScreenId) => void }) {
             <div key={i} className="rounded-sm" style={{ backgroundColor: on ? C.navy : C.bgPage }} />
           ))}
         </div>
-        <p className="text-5xl font-bold mt-4" style={{ color: C.text, letterSpacing: "-0.02em" }}>58 €</p>
+        <p className="text-5xl font-bold mt-4" style={{ color: C.text, letterSpacing: "-0.02em" }}>{finalOffer} €</p>
         <p className="text-xs mt-2 max-w-xs mx-auto" style={{ color: C.textMuted }}>
           Le client présente ce QR code en caisse pour récupérer son bon d'achat de 58 €
         </p>
       </Card>
 
       <Card className="p-4">
-        <InfoField label="Client" value="Marie Dupont" />
-        <InfoField label="Vélo" value="VTT Rockrider 520" />
-        <InfoField label="Dossier" value="DEC-00487" />
-        <InfoField label="Date" value="15/06/2026" />
-        <InfoField label="Bon d'achat" value="58 €" />
+        <InfoField label="Client" value={caseData ? `${caseData.customer.firstName} ${caseData.customer.lastName}` : 'Marie Dupont'} />
+        <InfoField label="Vélo" value={caseData ? `${caseData.item.brand} ${caseData.item.model}` : 'VTT Rockrider 520'} />
+        <InfoField label="Dossier" value={caseData?.caseNumber ?? 'DEC-00487'} />
+        <InfoField label="Date" value={new Date().toLocaleDateString()} />
+        <InfoField label="Bon d'achat" value={`${finalOffer} €`} />
       </Card>
 
       <div className="flex gap-3">
@@ -1010,6 +1364,8 @@ function Screen12({ go }: { go: (s: ScreenId) => void }) {
 // ─── Screen 13 — Refusée ──────────────────────────────────────────────────────
 
 function Screen13({ go }: { go: (s: ScreenId) => void }) {
+  const caseData = getCurrentCase();
+  const reasons = caseData?.refusalReasons ?? caseData?.scoring?.blockingReasons ?? ["Reprise refusée après diagnostic"];
   return (
     <PageShell title="Reprise refusée" subtitle="Communiquer les motifs">
       <div className="flex flex-col items-center py-2">
@@ -1028,7 +1384,7 @@ function Screen13({ go }: { go: (s: ScreenId) => void }) {
       <Card className="p-4">
         <SectionLabel>MOTIFS COMMUNIQUÉS AU CLIENT</SectionLabel>
         <div className="flex flex-col gap-2 mt-2">
-          {["Freins : patins en fin de vie", "Transmission : réglage avancé nécessaire"].map((m) => (
+          {reasons.map((m) => (
             <div key={m} className="flex items-start gap-2">
               <div className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: C.red }} />
               <p className="text-xs" style={{ color: C.text }}>{m}</p>

@@ -3,7 +3,7 @@ import { BuybackCase } from '../modules/cases/cases.schemas';
 export const CASES: BuybackCase[] = [
   {
     id: 'case_1',
-    caseNumber: 'DEC-00487',
+    caseNumber: 'DEC-00488',
     status: 'pending',
     customer: {
       firstName: 'Marie',

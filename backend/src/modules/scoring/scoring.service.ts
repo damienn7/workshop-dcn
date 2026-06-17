@@ -138,8 +138,10 @@ export function calculateScoreForCase(caseObj: any): ScoringResult {
     explanations
   };
 
-  // persist into case
-  updateCase(caseObj.caseNumber, { scoring: result, finalOffer: result.finalOffer });
+  // persist into case; if there are blocking reasons, mirror them to `refusalReasons`
+  const partial: any = { scoring: result, finalOffer: result.finalOffer };
+  if (blocking.length > 0) partial.refusalReasons = blocking;
+  updateCase(caseObj.caseNumber, partial);
 
   return result;
 }

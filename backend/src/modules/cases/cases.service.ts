@@ -66,5 +66,8 @@ export function setRefusal(caseNumber: string, reasons: string[]) {
   c.finalOffer = 0;
   c.status = 'refused';
   c.completedAt = new Date().toISOString();
+  // Keep scoring.blockingReasons in sync when a manual refusal is applied
+  if (!c.scoring) c.scoring = {} as any;
+  (c.scoring as any).blockingReasons = reasons;
   return c;
 }
