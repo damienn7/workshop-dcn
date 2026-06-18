@@ -88,7 +88,7 @@ function computeRepairsAndBlocking(diagnosis: any, item: any) {
   return { repairs, blocking };
 }
 
-export function calculateScoreForCase(caseObj: any): ScoringResult {
+export async function calculateScoreForCase(caseObj: any): Promise<ScoringResult> {
   const diagnosis = caseObj.diagnosis || {};
   const pre = caseObj.preDiagnostic || {};
   const categoryScores = computeCategoryScores(diagnosis, pre);
@@ -141,7 +141,7 @@ export function calculateScoreForCase(caseObj: any): ScoringResult {
   // persist into case; if there are blocking reasons, mirror them to `refusalReasons`
   const partial: any = { scoring: result, finalOffer: result.finalOffer };
   if (blocking.length > 0) partial.refusalReasons = blocking;
-  updateCase(caseObj.caseNumber, partial);
+  await updateCase(caseObj.caseNumber, partial);
 
   return result;
 }

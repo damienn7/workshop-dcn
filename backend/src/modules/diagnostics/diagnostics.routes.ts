@@ -5,47 +5,43 @@ import { ApiError } from '../../shared/ApiError';
 
 const router = express.Router();
 
-router.post('/:caseNumber/diagnosis/start', asyncHandler((req, res) => {
-  const c = svc.startDiagnosis(req.params.caseNumber);
+router.post('/:caseNumber/diagnosis/start', asyncHandler(async (req, res) => {
+  const c = await svc.startDiagnosis(req.params.caseNumber);
   res.json(c.diagnosis);
 }));
 
-router.put('/:caseNumber/diagnosis/identification', asyncHandler((req, res) => {
-  try {
-    const result = svc.saveIdentification(req.params.caseNumber, req.body);
-    res.json(result);
-  } catch (err) {
-    throw err;
-  }
-}));
-
-router.put('/:caseNumber/diagnosis/frame-fork', asyncHandler((req, res) => {
-  const result = svc.saveFrameFork(req.params.caseNumber, req.body);
+router.put('/:caseNumber/diagnosis/identification', asyncHandler(async (req, res) => {
+  const result = await svc.saveIdentification(req.params.caseNumber, req.body);
   res.json(result);
 }));
 
-router.put('/:caseNumber/diagnosis/brakes', asyncHandler((req, res) => {
-  const result = svc.saveBrakes(req.params.caseNumber, req.body);
+router.put('/:caseNumber/diagnosis/frame-fork', asyncHandler(async (req, res) => {
+  const result = await svc.saveFrameFork(req.params.caseNumber, req.body);
   res.json(result);
 }));
 
-router.put('/:caseNumber/diagnosis/transmission', asyncHandler((req, res) => {
-  const result = svc.saveTransmission(req.params.caseNumber, req.body);
+router.put('/:caseNumber/diagnosis/brakes', asyncHandler(async (req, res) => {
+  const result = await svc.saveBrakes(req.params.caseNumber, req.body);
   res.json(result);
 }));
 
-router.put('/:caseNumber/diagnosis/wheels-tires', asyncHandler((req, res) => {
-  const result = svc.saveWheelsTires(req.params.caseNumber, req.body);
+router.put('/:caseNumber/diagnosis/transmission', asyncHandler(async (req, res) => {
+  const result = await svc.saveTransmission(req.params.caseNumber, req.body);
   res.json(result);
 }));
 
-router.put('/:caseNumber/diagnosis/finishing', asyncHandler((req, res) => {
-  const result = svc.saveFinishing(req.params.caseNumber, req.body);
+router.put('/:caseNumber/diagnosis/wheels-tires', asyncHandler(async (req, res) => {
+  const result = await svc.saveWheelsTires(req.params.caseNumber, req.body);
   res.json(result);
 }));
 
-router.get('/:caseNumber/diagnosis', asyncHandler((req, res) => {
-  const result = svc.getDiagnosis(req.params.caseNumber);
+router.put('/:caseNumber/diagnosis/finishing', asyncHandler(async (req, res) => {
+  const result = await svc.saveFinishing(req.params.caseNumber, req.body);
+  res.json(result);
+}));
+
+router.get('/:caseNumber/diagnosis', asyncHandler(async (req, res) => {
+  const result = await svc.getDiagnosis(req.params.caseNumber);
   res.json(result);
 }));
 

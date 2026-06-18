@@ -1,0 +1,127 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  firstName String
+  lastName  String
+  phone     String?
+  email     String?
+
+  cases     BuybackCase[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model BuybackCase {
+  id             String   @id @default(cuid())
+  caseNumber     String   @unique
+  status         String
+
+  customerId     String
+  customer       Customer @relation(fields: [customerId], references: [id])
+
+  articleType    String
+  category       String?
+  brand          String?
+  model          String?
+  year           Int?
+  frameSize      String?
+  serialNumber   String?
+  declaredKm     Int?
+  estimatedBasePrice Int?
+
+  customerScore  Int?
+  onlineEstimate Int?
+  finalOffer     Int?
+
+  preDiagnostic  PreDiagnostic?
+  diagnosis      Diagnosis?
+  scoreResult    ScoreResult?
+  decision       Decision?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model PreDiagnostic {
+  id             String @id @default(cuid())
+  caseId         String @unique
+  case           BuybackCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  generalState   String?
+  frame          String?
+  brakes         String?
+  transmission   String?
+  wheels         String?
+  photosJson     String?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Diagnosis {
+  id             String @id @default(cuid())
+  caseId         String @unique
+  case           BuybackCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  startedAt      DateTime @default(now())
+  completedAt    DateTime?
+
+  identificationJson String?
+  frameForkJson       String?
+  brakesJson          String?
+  transmissionJson    String?
+  wheelsTiresJson     String?
+  finishingJson       String?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model ScoreResult {
+  id             String @id @default(cuid())
+  caseId         String @unique
+  case           BuybackCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  customerScore  Int?
+  technicianScore Int
+  decision       String
+  onlineEstimate Int?
+  finalOffer     Int
+  gapPercent     Int?
+
+  categoryScoresJson String
+  blockingReasonsJson String
+  repairCostsJson String
+  priceBreakdownJson String
+  explanationsJson String
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Decision {
+  id             String @id @default(cuid())
+  caseId         String @unique
+  case           BuybackCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  status         String
+  finalOffer     Int
+  manualAdjustment Boolean @default(false)
+  adjustmentReason String?
+
+  refusalReasonsJson String?
+  alternativesJson String?
+
+  completedAt    DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
