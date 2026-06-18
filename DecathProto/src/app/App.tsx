@@ -122,8 +122,7 @@ function PrimaryButton({ children, onClick }: { children: React.ReactNode; onCli
   return (
     <button
       onClick={onClick}
-      className="py-3 px-6 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-opacity active:opacity-80 w-full sm:w-auto"
-      style={{ backgroundColor: C.blue, color: "#fff" }}
+      className="primary-button py-3 px-6 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-opacity active:opacity-80 w-full sm:w-auto"
     >
       {children}
     </button>
@@ -134,8 +133,7 @@ function SecondaryButton({ children, onClick }: { children: React.ReactNode; onC
   return (
     <button
       onClick={onClick}
-      className="py-3 px-6 rounded-xl font-semibold text-sm w-full sm:w-auto transition-colors"
-      style={{ border: `1.5px solid ${C.border}`, backgroundColor: C.card, color: C.text }}
+      className="secondary-button py-3 px-6 rounded-xl font-semibold text-sm w-full sm:w-auto transition-colors"
     >
       {children}
     </button>
@@ -299,18 +297,48 @@ function PageShell({
   backLabel?: string;
   children: React.ReactNode;
 }) {
+  function AppHeader({ title, subtitle, onBack, backLabel }: { title: string; subtitle?: string; onBack?: () => void; backLabel?: string; }) {
+    return (
+      <div className="app-header">
+        <div className="px-6 pt-5 pb-4">
+          {onBack && (
+            <button onClick={onBack} className="app-header__back">
+              <ArrowLeft size={14} />
+              <span style={{ marginLeft: 6 }}>{backLabel ?? 'Retour'}</span>
+            </button>
+          )}
+          <h1 className="text-xl font-bold text-white leading-tight" style={{ marginTop: 6 }}>{title}</h1>
+          {subtitle && <p className="app-header__subtitle">{subtitle}</p>}
+        </div>
+      </div>
+    );
+  }
+  // detect stepper pattern like "Étape 1 / 5"
+  const stepMatch = subtitle ? subtitle.match(/Étape\s*(\d+)\s*\/\s*(\d+)/) : null;
+  let stepBar: React.ReactNode = null;
+  if (stepMatch) {
+    const stepIndex = Number(stepMatch[1]);
+    const total = Number(stepMatch[2]);
+    const segments = total + 1;
+    stepBar = (
+      <div className="px-6 mt-3 mb-2">
+        <div className="stepper" aria-hidden>
+          {Array.from({ length: segments }).map((_, i) => (
+            <div key={i} className={`stepper__segment ${i <= stepIndex ? 'stepper__segment--active' : ''}`} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full">
       {/* Contextual header stripe */}
-      <div
-        className="flex-shrink-0 px-6 pt-5 pb-4"
-        style={{ backgroundColor: C.navy }}
-      >
+      <div className="app-header flex-shrink-0 px-6 pt-5 pb-4">
         {onBack && (
           <button
             onClick={onBack}
-            className="flex items-center gap-1.5 text-xs font-semibold mb-3 transition-opacity opacity-70 hover:opacity-100"
-            style={{ color: "#fff" }}
+            className="flex items-center gap-1.5 text-xs font-semibold mb-3 transition-opacity opacity-70 hover:opacity-100 app-header__back"
           >
             <ArrowLeft size={13} />
             {backLabel ?? "Retour"}
@@ -318,15 +346,11 @@ function PageShell({
         )}
         <h1 className="text-xl font-bold text-white leading-tight">{title}</h1>
         {subtitle && (
-          <p className="text-sm mt-0.5" style={{ color: "rgba(255,255,255,0.6)" }}>
-            {subtitle}
-          </p>
+          <p className="text-sm mt-0.5 app-header__subtitle">{subtitle}</p>
         )}
       </div>
-      <div
-        className="flex-1 overflow-y-auto"
-        style={{ backgroundColor: C.bgPage }}
-      >
+      {stepBar}
+      <div className="flex-1 overflow-y-auto" style={{ backgroundColor: C.bgPage }}>
         <div className="p-6 flex flex-col gap-4 max-w-2xl">{children}</div>
       </div>
     </div>
@@ -646,16 +670,13 @@ function Screen3({ go }: { go: (s: ScreenId) => void }) {
       </div>
 
       {/* Tabs */}
-      <div
-        className="flex rounded-xl p-1 gap-1"
-        style={{ backgroundColor: C.card, border: `1.5px solid ${C.border}` }}
-      >
+      <div className="tabs" style={{ backgroundColor: C.card, border: `1.5px solid ${C.border}`, borderRadius: 12, padding: 4 }}>
         {tabs.map((t) => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className="flex-1 h-9 rounded-lg text-xs font-bold transition-colors"
-            style={tab === t.key ? { backgroundColor: C.blue, color: "#fff" } : { color: C.textMuted }}
+            className={`tab ${tab === t.key ? 'tab--active' : ''}`} 
+            style={tab === t.key ? { color: '#fff' } : { color: C.textMuted }}
           >
             {t.label}
           </button>
@@ -777,6 +798,47 @@ function Screen4({ go }: { go: (s: ScreenId) => void }) {
   const [serial, setSerial] = useState<string>(getCurrentCase()?.item.serialNumber ?? '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [serialError, setSerialError] = useState<string | null>(null);
+  const [priceError, setPriceError] = useState<string | null>(null);
+  // store formatted string value (grouped thousands) for display
+  const initialPrice = (() => {
+    const c = getCurrentCase();
+    const v = c?.item?.estimatedBasePrice ?? c?.onlineEstimate ?? '';
+    return typeof v === 'number' ? Math.round(v).toLocaleString('fr-FR') : '';
+  })();
+  const [estimatedBasePriceInput, setEstimatedBasePriceInput] = useState<string>(initialPrice);
+
+  useEffect(() => {
+    // keep the input in sync when the current case is loaded or changes
+    const c = getCurrentCase();
+    if (c && typeof c.item?.estimatedBasePrice !== 'undefined' && c.item?.estimatedBasePrice !== null) {
+      setEstimatedBasePriceInput(Math.round(c.item.estimatedBasePrice).toLocaleString('fr-FR'));
+    } else if (c && typeof c.onlineEstimate !== 'undefined' && c.onlineEstimate !== null) {
+      setEstimatedBasePriceInput(Math.round(c.onlineEstimate).toLocaleString('fr-FR'));
+    } else {
+      setEstimatedBasePriceInput('');
+    }
+    const unsub = subscribeCurrentCase((nc) => {
+      if (nc && typeof nc.item?.estimatedBasePrice !== 'undefined' && nc.item?.estimatedBasePrice !== null) {
+        setEstimatedBasePriceInput(Math.round(nc.item.estimatedBasePrice).toLocaleString('fr-FR'));
+      } else if (nc && typeof nc.onlineEstimate !== 'undefined' && nc.onlineEstimate !== null) {
+        setEstimatedBasePriceInput(Math.round(nc.onlineEstimate).toLocaleString('fr-FR'));
+      } else {
+        setEstimatedBasePriceInput('');
+      }
+    });
+    return unsub;
+  }, []);
+
+  function handlePriceChange(e: React.ChangeEvent<HTMLInputElement>) {
+    // keep only digits and format with thousands separator for display
+    const raw = e.currentTarget.value || '';
+    const digits = raw.replace(/\D/g, '');
+    const formatted = digits ? Number(digits).toLocaleString('fr-FR') : '';
+    setEstimatedBasePriceInput(formatted);
+    setPriceError(null);
+    setError(null);
+  }
   return (
     <PageShell title="Vérification du vélo" subtitle="Étape 0 / 5 — Identification" onBack={() => go(2)} backLabel="Dossier">
       <Card className="p-4">
@@ -790,17 +852,53 @@ function Screen4({ go }: { go: (s: ScreenId) => void }) {
         <InfoField label="Modèle exact" value={getCurrentCase()?.item.model ?? 'Rockrider 520'} />
         <InfoField label="Année" value={String(getCurrentCase()?.item.year ?? '2019')} />
         <div
-          className="flex justify-between py-2.5 border-b last:border-0"
+          className="flex flex-col py-2.5 border-b last:border-0"
           style={{ borderColor: C.border }}
         >
-          <span className="text-xs" style={{ color: C.textMuted }}>Numéro de série</span>
-          <input
-            value={serial}
-            onChange={(e) => setSerial(e.currentTarget.value)}
-            placeholder="Ex: 1234567890"
-            className="text-xs font-semibold w-40 text-right"
-            style={{ border: 0, background: 'transparent', color: C.text }}
-          />
+          <div className="flex justify-between items-center">
+            <span className="text-xs" style={{ color: C.textMuted }}>Numéro de série</span>
+            <input
+              value={serial}
+              onChange={(e) => { setSerial(e.currentTarget.value); setSerialError(null); setError(null); }}
+              placeholder="Ex: 1234567890"
+              className="text-xs font-semibold w-40 text-right"
+              style={{
+                border: serialError ? `1.5px solid ${C.red}` : 0,
+                background: serialError ? 'rgba(185,28,28,0.04)' : 'transparent',
+                color: C.text,
+                padding: '6px 8px',
+                borderRadius: 8,
+                textAlign: 'right'
+              }}
+            />
+          </div>
+          {serialError && <p className="text-xs mt-1" style={{ color: C.red }}>{serialError}</p>}
+        </div>
+
+        <div
+          className="flex flex-col py-2.5 border-b last:border-0"
+          style={{ borderColor: C.border }}
+        >
+          <div className="flex justify-between items-center">
+            <span className="text-xs" style={{ color: C.textMuted }}>Prix estimé (€)</span>
+            <input
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={estimatedBasePriceInput}
+              onChange={handlePriceChange}
+              placeholder="Ex: 120"
+              className="text-xs font-semibold w-40 text-right"
+              style={{
+                border: priceError ? `1.5px solid ${C.red}` : 0,
+                background: priceError ? 'rgba(185,28,28,0.04)' : 'transparent',
+                color: C.text,
+                padding: '6px 8px',
+                borderRadius: 8,
+                textAlign: 'right'
+              }}
+            />
+          </div>
+          {priceError && <p className="text-xs mt-1" style={{ color: C.red }}>{priceError}</p>}
         </div>
         <InfoField label="Taille cadre" value={getCurrentCase()?.item.frameSize ?? 'M'} />
       </Card>
@@ -825,9 +923,19 @@ function Screen4({ go }: { go: (s: ScreenId) => void }) {
       <PrimaryButton onClick={async () => {
         setSaving(true);
         setError(null);
+        setSerialError(null);
         try {
           const current = getCurrentCase();
           const number = current?.caseNumber ?? 'DEC-00487';
+          const estFromInput = estimatedBasePriceInput && estimatedBasePriceInput !== ''
+            ? Number(String(estimatedBasePriceInput).replace(/\D/g, ''))
+            : (current?.item?.estimatedBasePrice ?? current?.onlineEstimate ?? undefined);
+
+          if (!estFromInput || estFromInput <= 0) {
+            setPriceError('Prix estimé doit être supérieur à 0');
+            return;
+          }
+
           const payload = {
             articleType: current?.item.articleType ?? 'bike',
             category: current?.item.category ?? 'vtt',
@@ -836,7 +944,7 @@ function Screen4({ go }: { go: (s: ScreenId) => void }) {
             year: current?.item.year ?? 2019,
             frameSize: current?.item.frameSize ?? 'M',
             serialNumber: serial,
-            estimatedBasePrice: current?.item.estimatedBasePrice ?? current?.onlineEstimate ?? 0,
+            estimatedBasePrice: estFromInput,
             firstLookState: etat || 'good'
           };
           await diagApi.saveIdentification(number, payload);
@@ -844,7 +952,12 @@ function Screen4({ go }: { go: (s: ScreenId) => void }) {
           setCurrentCase(updated as BuybackCase);
           go(4);
         } catch (err: any) {
-          setError(err?.message ?? 'Erreur lors de l\'identification');
+          const msg = err?.payload?.message ?? err?.message ?? 'Erreur lors de l\'identification';
+          if (/num[eé]ro.*s[ée]rie|10 chiffres/i.test(String(msg))) {
+            setSerialError(msg);
+          } else {
+            setError(msg);
+          }
         } finally {
           setSaving(false);
         }
@@ -1536,8 +1649,8 @@ export default function App() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ backgroundColor: C.bgPage, fontFamily: "Inter, system-ui, sans-serif" }}>
-
+    <div className="mobile-shell">
+      <div className="flex flex-col min-h-screen" style={{ backgroundColor: C.bgPage, fontFamily: "Inter, system-ui, sans-serif" }}>
       {/* Top bar */}
       {/* <header
         className="flex-shrink-0 flex items-center justify-between px-4 md:px-6 h-14"
@@ -1570,7 +1683,7 @@ export default function App() {
       {/* </div> */}
       {/* </header> */}
 
-      <div className="flex flex-1 overflow-hidden" style={{ height: "calc(100vh - 56px)" }}>
+      {/* <div className="flex flex-1 overflow-hidden" style={{ height: "calc(100vh - 56px)" }}> */}
 
         {/* Sidebar overlay (mobile) */}
         {/* {sidebarOpen && (

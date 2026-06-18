@@ -1,0 +1,35 @@
+:root {
+  --color-primary: #3947c4;
+  --color-primary-dark: #303bb0;
+
+  --color-bg: #ffffff;
+  --color-surface: #ffffff;
+  --color-border: #e5e7eb;
+  --color-border-soft: #eeeeee;
+
+  --color-text: #111827;
+  --color-muted: #9ca3af;
+  --color-muted-light: #c7c7c7;
+
+  --color-success: #10a66a;
+  --color-success-bg: #d7ffe7;
+  --color-success-soft: #e6fff0;
+
+  --color-warning: #a86200;
+  --color-warning-bg: #fff3d7;
+
+  --color-danger: #b91c1c;
+  --color-danger-bg: #ffe2e2;
+
+  --color-info-bg: #e8eaff;
+
+  --radius-header: 28px;
+  --radius-card: 12px;
+  --radius-button: 10px;
+  --radius-pill: 999px;
+
+  --screen-padding: 36px;
+  --card-padding: 16px;
+
+  --mobile-max-width: 430px;
+}
