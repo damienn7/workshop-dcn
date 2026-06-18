@@ -21,6 +21,11 @@ router.get('/:caseNumber', asyncHandler((req, res) => {
 router.post('/', asyncHandler((req, res) => {
   const parsed = NewCaseSchema.safeParse(req.body);
   if (!parsed.success) {
+    // allow a minimal creation flow for in-store cases
+    if (req.body && (req.body.withoutPreDiagnostic || req.body.source === 'in_store')) {
+      const created = service.createCaseMinimal(req.body);
+      return res.status(201).json(created);
+    }
     const err = parsed.error;
     throw new ApiError(400, 'Données invalides', err.errors.map(e => e.message));
   }

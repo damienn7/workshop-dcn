@@ -38,6 +38,34 @@ export function createCase(payload: NewCasePayload): BuybackCase {
   return newCase;
 }
 
+export function createCaseMinimal(payload: any): BuybackCase {
+  const id = `case_${Date.now()}`;
+  const random = Math.floor(10000 + Math.random() * 90000);
+  const caseNumber = `DEC-${random}`;
+  const customer = payload?.customer ?? { firstName: 'Client', lastName: 'Magasin', phone: '', email: '' };
+  const item = payload?.item ? (payload.item as any) : ({ articleType: 'bike' } as any);
+  const newCase: BuybackCase = {
+    id,
+    caseNumber,
+    status: 'pending',
+    customer,
+    item,
+    preDiagnostic: undefined,
+    customerScore: undefined,
+    onlineEstimate: undefined,
+    finalOffer: null,
+    diagnosis: undefined,
+  } as BuybackCase;
+
+  // timestamps helpful for UI/trace
+  const now = new Date().toISOString();
+  (newCase as any).createdAt = now;
+  (newCase as any).updatedAt = now;
+
+  CASES.unshift(newCase);
+  return newCase;
+}
+
 export function updateCase(caseNumber: string, partial: Partial<BuybackCase>): BuybackCase {
   const c = getCaseByNumber(caseNumber);
   if (!c) throw new ApiError(404, 'Dossier introuvable');

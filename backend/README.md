@@ -19,6 +19,21 @@ Endpoints principaux
 - `GET /api/cases/:caseNumber` — détail d'un dossier
 - `POST /api/cases` — créer un dossier simple
 
+Création sans pré-diagnostic
+
+Le endpoint `POST /api/cases` supporte également la création rapide depuis le magasin en envoyant `withoutPreDiagnostic: true` ou `source: "in_store"` dans le body. Exemple minimal :
+
+```json
+{
+  "source": "in_store",
+  "withoutPreDiagnostic": true,
+  "customer": { "firstName": "Client", "lastName": "Magasin" },
+  "item": { "articleType": "bike" }
+}
+```
+
+La réponse retourne le dossier créé avec `status: "pending"`, `customerScore` et `onlineEstimate` à `null`, et `finalOffer` à `null`.
+
 - Diagnostic:
   - `POST /api/cases/:caseNumber/diagnosis/start`
   - `PUT  /api/cases/:caseNumber/diagnosis/identification`

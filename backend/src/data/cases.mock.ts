@@ -99,5 +99,38 @@ export const CASES: BuybackCase[] = [
     customerScore: 54,
     onlineEstimate: 50,
     finalOffer: 0
+  },
+{
+    id: 'case_1',
+    caseNumber: 'DEC-00487',
+    status: 'pending',
+    customer: {
+      firstName: 'Marie',
+      lastName: 'Dupont',
+      phone: '06 12 34 56 78',
+      email: 'marie.dupont@email.fr'
+    },
+    item: {
+      articleType: 'bike',
+      category: 'vtt',
+      brand: 'Rockrider',
+      model: 'Rockrider 520',
+      year: 2019,
+      frameSize: 'M',
+      serialNumber: '',
+      declaredKm: 2500,
+      estimatedBasePrice: 150
+    },
+    preDiagnostic: {
+      generalState: 'good',
+      frame: 'no_shock',
+      brakes: 'functional',
+      transmission: 'small_difficulty',
+      wheels: 'normal_wear',
+      photos: ['photo_1', 'photo_2', 'photo_3']
+    },
+    customerScore: 72,
+    onlineEstimate: 85,
+    finalOffer: null
   }
 ];
