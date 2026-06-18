@@ -73,7 +73,7 @@ export async function listCasesCompact() {
     include: { customer: true },
     orderBy: { createdAt: 'desc' }
   });
-  return list.map(c => ({
+  return list.map((c: any) => ({
     id: c.id,
     caseNumber: c.caseNumber,
     status: c.status,
@@ -111,7 +111,8 @@ export async function createCase(payload: NewCasePayload) {
       customerScore: 0,
       onlineEstimate: (payload as any).item.estimatedBasePrice ?? undefined,
       finalOffer: null
-    }
+    },
+    include: { customer: true }
   });
   return mapDbCaseToApi(created as any);
 }
@@ -124,7 +125,8 @@ export async function createCaseMinimal(payload: any) {
       customer: { create: payload?.customer ?? { firstName: 'Client', lastName: 'Magasin' } },
       articleType: payload?.item?.articleType ?? 'bike',
       finalOffer: null
-    }
+    },
+    include: { customer: true }
   });
   return mapDbCaseToApi(created as any);
 }

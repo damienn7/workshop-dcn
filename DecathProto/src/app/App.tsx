@@ -18,6 +18,7 @@ import {
 import diagApi from "../imports/diagApi";
 import type { CaseListItem, BuybackCase } from "../imports/api.types";
 import { setCurrentCase, getCurrentCase, subscribeCurrentCase } from "../imports/currentCase";
+import { formatPreDiagnosticValue, formatScore, formatPrice } from "../imports/formatters";
 
 // ─── Design tokens ─────────────────────────────────────────────────────────────
 
@@ -421,6 +422,26 @@ function Screen1({ go }: { go: (s: ScreenId) => void }) {
     await handleOpenCase(term.trim());
   };
 
+  const handleCreateWithoutPrediag = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const payload = {
+        source: 'in_store',
+        withoutPreDiagnostic: true,
+        customer: { firstName: 'Client', lastName: 'Magasin', phone: '', email: '' },
+        item: { articleType: 'bike' }
+      };
+      const c = await diagApi.createCase(payload);
+      setCurrentCase(c as BuybackCase);
+      go(2);
+    } catch (err: any) {
+      setError(err?.message ?? 'Erreur création dossier');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex-shrink-0 px-6 pt-5 pb-5" style={{ backgroundColor: C.navy }}>
@@ -478,7 +499,7 @@ function Screen1({ go }: { go: (s: ScreenId) => void }) {
                   onBlur={(e) => (e.currentTarget.style.borderColor = C.border)}
                 />
               </div>
-              <SecondaryButton>Nouveau sans pré-diagnostic</SecondaryButton>
+              <SecondaryButton onClick={() => { void handleCreateWithoutPrediag(); }}>Nouveau sans pré-diagnostic</SecondaryButton>
             </div>
           </div>
 
@@ -610,11 +631,11 @@ function Screen3({ go }: { go: (s: ScreenId) => void }) {
       {/* Scores */}
       <div className="grid grid-cols-2 gap-3">
         <Card className="py-4 text-center">
-          <p className="text-3xl font-bold" style={{ color: C.blue }}>{caseData?.customerScore ?? 72}</p>
+          <p className="text-3xl font-bold" style={{ color: C.blue }}>{formatScore(caseData?.customerScore)}</p>
           <p className="text-xs mt-1" style={{ color: C.textMuted }}>Score client</p>
         </Card>
         <Card className="py-4 text-center">
-          <p className="text-3xl font-bold" style={{ color: C.green }}>{caseData?.onlineEstimate ? `${caseData.onlineEstimate} €` : '—'}</p>
+          <p className="text-3xl font-bold" style={{ color: C.green }}>{formatPrice(caseData?.onlineEstimate)}</p>
           <p className="text-xs mt-1" style={{ color: C.textMuted }}>Estimation ligne</p>
         </Card>
       </div>
@@ -674,22 +695,76 @@ function Screen3({ go }: { go: (s: ScreenId) => void }) {
       )}
 
       {tab === "prediag" && (
-        <Card className="p-4">
-          <p className="text-xs mb-3" style={{ color: C.textMuted }}>
-            Pré-diagnostic renseigné par le client en ligne.
-          </p>
-          <InfoField label="État général" value="Bon état" />
-          <InfoField label="Cadre" value="Aucun choc visible" />
-          <InfoField label="Freins" value="Fonctionnels" />
-          <InfoField label="Transmission" value="Petites difficultés" />
-        </Card>
+        (() => {
+          const pre = caseData?.preDiagnostic;
+          if (!pre) {
+            return (
+              <Card className="p-4">
+                <p className="text-sm mb-3" style={{ color: C.textMuted }}>
+                  Aucun pré-diagnostic client n'est disponible pour ce dossier.
+                </p>
+                <PrimaryButton onClick={async () => {
+                  setLoading(true);
+                  try {
+                    const number = caseData?.caseNumber ?? 'DEC-00487';
+                    await diagApi.startDiagnosis(number);
+                    const updated = await diagApi.getCase(number);
+                    setCurrentCase(updated as BuybackCase);
+                    go(3);
+                  } catch (err: any) {
+                    // ignore here, Screen3 will show errors
+                  } finally {
+                    setLoading(false);
+                  }
+                }}>Continuer avec un diagnostic magasin</PrimaryButton>
+              </Card>
+            );
+          }
+
+          return (
+            <>
+              <Card className="p-4">
+                <p className="text-xs mb-3" style={{ color: C.textMuted }}>
+                  Informations déclarées par le client lors de l'estimation en ligne. À vérifier pendant le diagnostic magasin.
+                </p>
+                <InfoField label="État général" value={formatPreDiagnosticValue(pre.generalState as any)} />
+                <InfoField label="Cadre" value={formatPreDiagnosticValue(pre.frame as any)} />
+                <InfoField label="Freins" value={formatPreDiagnosticValue(pre.brakes as any)} />
+                <InfoField label="Transmission" value={formatPreDiagnosticValue(pre.transmission as any)} />
+                <InfoField label="Roues" value={formatPreDiagnosticValue(pre.wheels as any)} />
+                <div className="mt-3">
+                  <InfoField label="Score client" value={`${formatScore(caseData?.customerScore)} / 100`} />
+                  <InfoField label="Estimation ligne" value={formatPrice(caseData?.onlineEstimate)} />
+                </div>
+              </Card>
+            </>
+          );
+        })()
       )}
 
       {tab === "photos" && (
-        <div className="flex gap-3">
-          <PhotoPlaceholder label="Photo client 1" />
-          <PhotoPlaceholder label="Photo client 2" />
-        </div>
+        (() => {
+          const photos = caseData?.preDiagnostic?.photos ?? [];
+          if (!photos || photos.length === 0) {
+            return (
+              <Card className="p-4">
+                <p className="text-sm mb-2" style={{ color: C.textMuted }}>Aucune photo client fournie.</p>
+                <p className="text-xs" style={{ color: C.textMuted }}>Les photos permettent d'objectiver l'état déclaré, mais ne remplacent pas le contrôle magasin.</p>
+              </Card>
+            );
+          }
+          return (
+            <div className="flex flex-col gap-3">
+              <p className="text-xs" style={{ color: C.textMuted }}>{photos.length} photo{photos.length > 1 ? 's' : ''} fournies par le client</p>
+              <div className="flex gap-3">
+                {photos.map((p, i) => (
+                  <PhotoPlaceholder key={p || i} label={`Photo ${i + 1}`} />
+                ))}
+              </div>
+              <p className="text-xs" style={{ color: C.textMuted }}>Ces images sont fournies par le client et doivent être vérifiées lors du diagnostic magasin.</p>
+            </div>
+          );
+        })()
       )}
     </PageShell>
   );
