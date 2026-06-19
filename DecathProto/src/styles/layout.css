@@ -169,13 +169,49 @@ input, button, select, textarea {
   padding: 4px 8px;
 }
 
-/* Currency input styling */
-.currency-input { display: inline-flex; align-items: center; }
-.currency-input input { background: transparent; border: 0; }
-.currency-suffix { color: var(--color-text); }
+/* Standard input field used across the app */
+.input-field {
+  height: 44px;
+  padding: 11px 13px;
+  border-radius: 6px;
+  border: 1px solid var(--Gris-clair, #E1E0DF);
+  background: var(--color-surface);
+  font-size: 15px;
+  font-weight: 700;
+  width: 100% !important;
+  color: var(--color-text);
+  text-align: right;
+}
+.input-field::placeholder {
+  width: 100%;
+  text-align: left;
+}
+.input-field:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 6px 18px rgba(57,71,196,0.08);
+}
+.input--error {
+  border-radius: 8px;
+  border: 1.5px solid var(--color-danger);
+  background: rgba(185,28,28,0.04);
+  padding: 4px 8px;
+}
+
+/* Currency input styling: wrapper holds the border, inner input is borderless */
+.currency-input {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  background: var(--color-surface);
+}
+.currency-input__input { background: transparent; border: 0; padding: 0 6px; min-width: 72px; text-align: right; font-weight: 700; }
+.currency-suffix { color: var(--color-text); font-weight: 700; }
 
 /* Choice chips */
-.choice-chip { display: inline-flex; align-items: center; gap: 8px; border-color: var(--color-border); background: var(--color-surface); color: var(--color-text); padding: 8px 10px; border-radius: 10px; font-size: 13px; font-weight: 700; }
+.choice-chip { display: inline-flex; align-items: center; gap: 8px; border-color: var(--color-border); background: var(--color-surface); color: var(--color-text); padding: 8px 10px; border-radius: 6px; font-size: 13px; font-weight: 700; }
 .choice-chip[data-selected="true"] { background: var(--color-primary); color: #fff; border-color: var(--color-primary); box-shadow: 0 8px 18px rgba(57,71,196,0.12); transform: translateY(-1px); }
 .choice-chip[data-danger="true"][data-selected="true"] { background: var(--color-danger); color: #fff; border-color: var(--color-danger); box-shadow: 0 8px 18px rgba(185,28,28,0.12); }
 
@@ -183,6 +219,59 @@ input, button, select, textarea {
 .photo-placeholder { border-radius: 12px; min-height: 110px; border: 2px dashed var(--color-border); background: var(--color-surface); padding: 14px; display: flex; align-items: center; justify-content: center; }
 .photo-placeholder svg { color: var(--color-border); }
 .photo-placeholder .text-[10px] { color: var(--color-muted); font-weight: 700; }
+.photo-placeholder__label { color: var(--color-muted); font-weight: 700; }
+
+/* Info field (label / value rows) */
+.info-field {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 14px;
+}
+.info-field__label {
+  color: var(--color-muted);
+  font-size: 13px;
+}
+.info-field__value {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+/* Info box variants used for contextual guidance */
+.info-box {
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.4;
+  border: 1px solid var(--color-border);
+}
+.info-box--blue {
+  background: var(--color-info-bg);
+  border-color: #C7CCFF;
+  color: var(--color-primary);
+}
+.info-box--orange {
+  background: var(--color-warning-bg);
+  border-color: #FFCBA0;
+  color: var(--color-warning);
+}
+
+/* Status badges */
+.status-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.status-badge--pending { background: var(--color-warning-bg); color: var(--color-warning); }
+.status-badge--accepted { background: var(--color-success-bg); color: var(--color-success); }
+.status-badge--refused { background: var(--color-danger-bg); color: var(--color-danger); }
+.status-badge--conditional { background: var(--color-warning-bg); color: var(--color-warning); }
+.status-badge--seller { background: var(--color-info-bg); color: var(--color-primary); }
 
 /* Section label refinements */
 .section-label { letter-spacing: 0.12em; font-size: 11px; font-weight: 800; color: var(--color-muted); margin-bottom: 8px; text-transform: uppercase; }
@@ -208,4 +297,100 @@ input, button, select, textarea {
   background: linear-gradient(90deg, var(--color-primary), var(--color-primary-dark));
   transform: translateY(-1px);
   box-shadow: 0 6px 14px rgba(57,71,196,0.12);
+}
+
+.home-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100vw;
+    z-index: 1000;
+}
+
+.home-header_p {
+    display: flex;
+    height: 82px;
+    padding: 3px 0;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 3px;
+    align-self: stretch;
+}
+
+.table-content-diags {
+    max-height: 40vh;
+    overflow-y: auto;
+}
+
+.qr-scan-button-home {
+    border-radius: 15px;
+    background: var(--Violet-primary, #3643BA);
+
+    display: flex;
+    height: 185px;
+    padding: 14px 20px 28px 20px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 7px;
+    align-self: stretch;
+}
+
+.icon-qr-code {
+    width: 105px;
+    height: 105px;
+    flex-shrink: 0;
+    aspect-ratio: 1/1;
+}
+
+.title-qr-code-button {
+    color: #FFF;
+    font-family: Inter;
+    font-size: 18px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+}
+
+.desc-qr-code-button {
+    color: #FFF;
+    font-family: Inter;
+    font-size: 13px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    text-align: center;
+}
+
+.search-section-home {
+    border-radius: 10px;
+    border: 1px solid var(--Gris-clair, #E1E0DF);
+    background: #FFF;
+
+    display: flex;
+    padding: 14px 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    align-self: stretch;
+}
+
+.search-section-home-label {
+    color: var(--Gris-moyen, #BFBFBF) !important;
+    font-family: Inter;
+    font-size: 11px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+}
+
+.table-content-home-button {
+    display: flex;
+    height: 60px;
+    padding: 11px 0;
+    align-items: center;
+    gap: 16px;
+    align-self: stretch;
 }

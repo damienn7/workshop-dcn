@@ -77,20 +77,9 @@ const STATUS_LABEL: Record<StatusType, string> = {
   seller: "Mode vendeur",
 };
 
-const STATUS_STYLE: Record<StatusType, React.CSSProperties> = {
-  pending: { backgroundColor: C.amberLight, color: C.amber },
-  accepted: { backgroundColor: C.greenLight, color: C.green },
-  refused: { backgroundColor: C.redLight, color: C.red },
-  conditional: { backgroundColor: C.orangeLight, color: C.orange },
-  seller: { backgroundColor: C.blueLight, color: C.blue }
-};
-
 function StatusBadge({ status }: { status: StatusType }) {
   return (
-    <span
-      className="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap"
-      style={STATUS_STYLE[status]}
-    >
+    <span className={`status-badge status-badge--${status}`}>
       {STATUS_LABEL[status]}
     </span>
   );
@@ -99,7 +88,7 @@ function StatusBadge({ status }: { status: StatusType }) {
 function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
     <div
-      className={`rounded-2xl border ${className}`}
+      className={`card rounded-2xl border ${className}`}
       style={{ backgroundColor: C.card, borderColor: C.border }}
     >
       {children}
@@ -110,7 +99,7 @@ function Card({ children, className = "" }: { children: React.ReactNode; classNa
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <p
-      className="section-label text-[10px] font-bold tracking-[0.12em] uppercase mb-2"
+      className="section-label text-[10px] font-bold tracking-[0.12em] uppercase mb-2 search-section-home-label"
       style={{ color: C.textMuted }}
     >
       {children}
@@ -168,12 +157,9 @@ function ChoiceChip({
 
 function PhotoPlaceholder({ label }: { label: string }) {
   return (
-    <div
-      className="photo-placeholder flex-1 flex flex-col items-center justify-center gap-2 rounded-xl py-6 min-h-[90px]"
-      style={{ border: `2px dashed ${C.border}`, backgroundColor: C.bgPage }}
-    >
-      <Camera size={18} style={{ color: C.border }} />
-      <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: C.textMuted }}>
+    <div className="photo-placeholder flex-1 flex flex-col items-center justify-center gap-2 rounded-xl py-6 min-h-[90px]">
+      <Camera size={18} />
+      <span className="photo-placeholder__label text-[10px] font-bold uppercase tracking-wide">
         {label}
       </span>
     </div>
@@ -182,23 +168,17 @@ function PhotoPlaceholder({ label }: { label: string }) {
 
 function InfoField({ label, value }: { label: string; value: string }) {
   return (
-    <div
-      className="flex justify-between py-2.5 border-b last:border-0"
-      style={{ borderColor: C.border }}
-    >
-      <span className="text-xs" style={{ color: C.textMuted }}>{label}</span>
-      <span className="text-xs font-semibold" style={{ color: C.text }}>{value}</span>
+    <div className="info-field" style={{ borderColor: C.border }}>
+      <span className="info-field__label">{label}</span>
+      <span className="info-field__value">{value}</span>
     </div>
   );
 }
 
 function InfoBox({ children, color = "blue" }: { children: React.ReactNode; color?: "blue" | "orange" }) {
-  const style =
-    color === "orange"
-      ? { backgroundColor: C.orangeLight, borderColor: "#FFCBA0", color: C.orange }
-      : { backgroundColor: C.blueLight, borderColor: "#C7CCFF", color: C.blue };
+  const cls = color === 'orange' ? 'info-box info-box--orange' : 'info-box info-box--blue';
   return (
-    <div className="rounded-xl px-4 py-3 text-xs leading-relaxed border" style={style}>
+    <div className={cls}>
       {children}
     </div>
   );
@@ -358,6 +338,14 @@ function Logo() {
   );
 }
 
+function QRCode() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="105" height="105" viewBox="0 0 105 105" fill="none">
+      <path d="M64.5637 48.8737H84.5587C90.1837 48.8737 92.9512 46.0612 92.9512 40.2619V20.6175C92.9512 14.8162 90.1837 12.0487 84.5587 12.0487H64.5637C58.9819 12.0487 56.1694 14.8162 56.1694 20.6175V40.2619C56.1694 46.0612 58.9819 48.8737 64.5637 48.8737ZM20.4412 48.8737H40.4812C46.0612 48.8737 48.8737 46.0612 48.8737 40.2619V20.6175C48.8737 14.8162 46.0612 12.0487 40.4812 12.0487H20.4412C14.8612 12.0487 12.0487 14.8162 12.0487 20.6175V40.2619C12.0487 46.0612 14.8612 48.8737 20.4412 48.8737ZM20.5294 42.6787C18.9919 42.6787 18.2437 41.8875 18.2437 40.26V20.6194C18.2437 19.0369 18.9919 18.2456 20.5312 18.2456H40.35C41.8875 18.2456 42.6787 19.0369 42.6787 20.6194V40.2637C42.6787 41.8894 41.8875 42.6806 40.35 42.6806L20.5294 42.6787ZM64.65 42.6787C63.1125 42.6787 62.3662 41.8875 62.3662 40.26V20.6194C62.3662 19.0369 63.1125 18.2456 64.65 18.2456H84.5137C86.0087 18.2456 86.7562 19.0369 86.7562 20.6194V40.2637C86.7562 41.8894 86.0081 42.6806 84.5137 42.6806L64.65 42.6787ZM26.6812 35.0756H34.1962C34.8562 35.0756 35.1187 34.8131 35.1187 34.065V26.7712C35.1187 26.0662 34.8562 25.8037 34.1962 25.8037H26.6812C26.0231 25.8037 25.8469 26.0662 25.8469 26.7694V34.065C25.8469 34.8112 26.0231 35.0756 26.6812 35.0756ZM71.0662 35.0775H78.5381C79.1962 35.0775 79.4606 34.815 79.4606 34.0669V26.7731C79.4606 26.0681 79.1981 25.8056 78.5381 25.8056H71.0662C70.4081 25.8056 70.1887 26.0681 70.1887 26.7712V34.0669C70.1887 34.8131 70.4081 35.0775 71.0662 35.0775ZM20.4412 92.955H40.4812C46.0612 92.955 48.8737 90.1875 48.8737 84.3862V64.6987C48.8737 58.9425 46.0612 56.13 40.4812 56.13H20.4412C14.8612 56.13 12.0487 58.9425 12.0487 64.6987V84.3862C12.0487 90.1875 14.8612 92.955 20.4412 92.955ZM59.1131 67.5112H66.6281C67.2881 67.5112 67.5506 67.2487 67.5506 66.4987V59.205C67.5506 58.5019 67.2881 58.2394 66.6281 58.2394H59.1131C58.455 58.2394 58.2787 58.5019 58.2787 59.205V66.4987C58.2787 67.2487 58.455 67.5112 59.1131 67.5112ZM82.4494 67.5112H89.9625C90.6225 67.5112 90.8869 67.2487 90.8869 66.4987V59.205C90.8869 58.5019 90.6225 58.2394 89.9625 58.2394H82.4494C81.7894 58.2394 81.5681 58.5019 81.5681 59.205V66.4987C81.5681 67.2487 81.7894 67.5112 82.4494 67.5112ZM20.5294 86.7562C18.9919 86.7562 18.2437 85.965 18.2437 84.3825V64.7381C18.2437 63.1125 18.9919 62.3212 20.5312 62.3212H40.35C41.8875 62.3212 42.6787 63.1125 42.6787 64.74V84.3825C42.6787 85.965 41.8875 86.7562 40.35 86.7562H20.5294ZM26.6812 79.1962H34.1962C34.8562 79.1962 35.1187 78.9337 35.1187 78.1425V70.8919C35.1187 70.1887 34.8562 69.9244 34.1962 69.9244H26.6812C26.0231 69.9244 25.8469 70.1869 25.8469 70.8919V78.1425C25.8469 78.9337 26.0231 79.1962 26.6812 79.1962ZM70.8919 79.1962H78.405C79.065 79.1962 79.3275 78.9337 79.3275 78.1425V70.8919C79.3275 70.1887 79.065 69.9244 78.405 69.9244H70.89C70.2319 69.9244 70.0556 70.1869 70.0556 70.8919V78.1425C70.0556 78.9337 70.2319 79.1962 70.8919 79.1962ZM59.1131 90.8419H66.6281C67.2881 90.8419 67.5506 90.5794 67.5506 89.8312V82.5375C67.5506 81.8325 67.2881 81.57 66.6281 81.57H59.1131C58.455 81.57 58.2787 81.8325 58.2787 82.5375V89.8312C58.2787 90.5794 58.455 90.8419 59.1131 90.8419ZM82.4494 90.8437H89.9625C90.6225 90.8437 90.8869 90.5812 90.8869 89.8331V82.5394C90.8869 81.8344 90.6225 81.5719 89.9625 81.5719H82.4494C81.7894 81.5719 81.5681 81.8344 81.5681 82.5394V89.8331C81.5681 90.5812 81.7894 90.8437 82.4494 90.8437Z" fill="white"/>
+    </svg>
+  );
+}
+
 function Screen1({ go }: { go: (s: ScreenId) => void }) {
   const [dossiers, setDossiers] = useState(DOSSIERS);
   const [loading, setLoading] = useState(false);
@@ -446,8 +434,8 @@ function Screen1({ go }: { go: (s: ScreenId) => void }) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-shrink-0 px-6 pt-5 pb-5" style={{ backgroundColor: C.navy }}>
-        <p className="text-xs font-bold tracking-[0.15em] uppercase mb-3" style={{ color: "#FFFFFF", display: "flex", alignItems: "center", gap: 4 }}>
+      <div className="flex-shrink-0 px-6 pt-5 pb-5 home-header" style={{ backgroundColor: C.navy, borderRadius: '0 0 20px 20px' }}>
+        <p className="text-xs font-bold tracking-[0.15em] uppercase mb-3 home-header_p" style={{ color: "#FFFFFF", display: "flex", alignItems: "center", gap: 4 }}>
           {Logo()}<span style={{ marginLeft: "3px" }}> DECATHLON <span style={{ color: "rgba(255,255,255,0.5)" }}>· Seconde Vie</span></span>
         </p>
         <h1 className="text-2xl font-bold text-white">Diagnostic reprise</h1>
@@ -458,25 +446,26 @@ function Screen1({ go }: { go: (s: ScreenId) => void }) {
         </p>
       </div>
 
-      <div className="flex-1 overflow-y-auto" style={{ backgroundColor: C.bgPage }}>
+      <div className="flex-1 overflow-y-auto" style={{ backgroundColor: C.bgPage, paddingTop: '196.5px' }}>
         <div className="p-6 max-w-2xl flex flex-col gap-5">
           {/* Scanner CTA */}
           <button
             onClick={() => go(1)}
-            className="w-full flex items-center gap-4 p-5 rounded-2xl border text-left transition-all hover:shadow-md"
-            style={{ backgroundColor: C.card, borderColor: C.border }}
+            className="w-full flex items-center gap-4 p-5 rounded-2xl border text-left transition-all hover:shadow-md qr-scan-button-home"
+            style={{ backgroundColor: C.blue, borderColor: C.border }}
           >
             <div
-              className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+              className="rounded-xl flex items-center justify-center flex-shrink-0"
               style={{ backgroundColor: C.blue }}
             >
-              <QrCode size={22} color="#fff" />
+              {/* <QrCode size={22} className="icon-qr-code" color="#fff" /> */}
+              {QRCode()}
             </div>
             <div className="flex-1">
-              <p className="font-bold text-sm" style={{ color: C.text }}>
+              <p className="font-bold text-sm title-qr-code-button">
                 Scanner le QR code client
               </p>
-              <p className="text-xs mt-0.5" style={{ color: C.textMuted }}>
+              <p className="text-xs mt-0.5 desc-qr-code-button">
                 Appuie pour ouvrir la caméra
               </p>
             </div>
@@ -484,36 +473,33 @@ function Screen1({ go }: { go: (s: ScreenId) => void }) {
           </button>
 
           {/* Recherche */}
-          <div>
+          <div className="search-section-home">
             <SectionLabel>OU RECHERCHER UN DOSSIER</SectionLabel>
-            <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex flex-col sm:flex-row gap-2" style={{ width: '100%' }}>
               <div className="relative flex-1">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: C.textMuted }} />
+                {/* <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: C.textMuted }} /> */}
                 <input
                   type="text"
                   placeholder="N° dossier ex: DEC-00487"
-                  className="w-full h-11 pl-9 pr-4 rounded-xl border text-sm outline-none transition-colors"
-                  style={{ backgroundColor: C.card, borderColor: C.border, color: C.text }}
+                  className="input-field input-search pl-9 pr-4"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.currentTarget.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void handleSearch(searchTerm); } }}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = C.blue)}
-                  onBlur={(e) => (e.currentTarget.style.borderColor = C.border)}
                 />
               </div>
-              <SecondaryButton onClick={() => { void handleCreateWithoutPrediag(); }}>Nouveau sans pré-diagnostic</SecondaryButton>
             </div>
           </div>
 
+          <PrimaryButton onClick={() => { void handleCreateWithoutPrediag(); }}>Nouveau sans pré-diagnostic</PrimaryButton>
           {/* Liste dossiers */}
           <div>
             <SectionLabel>DOSSIERS EN ATTENTE</SectionLabel>
-            <Card>
+            <Card className="table-content-diags">
               {dossiers.map((d, i) => (
                 <button
                   key={d.ref}
                   onClick={() => { void handleOpenCase(d.ref); }}
-                  className={`w-full flex items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-gray-50 ${i < dossiers.length - 1 ? "border-b" : ""}`}
+                  className={`w-full flex items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-gray-50 table-content-home-button ${i < dossiers.length - 1 ? "border-b" : ""}`}
                   style={{ borderColor: C.border }}
                 >
                   <div
@@ -851,15 +837,8 @@ function Screen4({ go }: { go: (s: ScreenId) => void }) {
               value={serial}
               onChange={(e) => { setSerial(e.currentTarget.value); setSerialError(null); setError(null); }}
               placeholder="Ex: 1234567890"
-              className="text-xs font-semibold w-40 text-right"
-              style={{
-                border: serialError ? `1.5px solid ${C.red}` : 0,
-                background: serialError ? 'rgba(185,28,28,0.04)' : 'transparent',
-                color: C.text,
-                padding: '6px 8px',
-                borderRadius: 8,
-                textAlign: 'right'
-              }}
+              className={`text-xs font-semibold w-40 text-right input-field input-serial ${serialError ? 'input--error' : ''}`}
+              style={{ color: C.text }}
             />
           </div>
           {serialError && <p className="text-xs mt-1" style={{ color: C.red }}>{serialError}</p>}
@@ -878,15 +857,8 @@ function Screen4({ go }: { go: (s: ScreenId) => void }) {
                 value={estimatedBasePriceInput}
                 onChange={handlePriceChange}
                 placeholder="Ex: 120"
-                className="text-xs font-semibold w-40 text-right"
-                style={{
-                  border: priceError ? `1.5px solid ${C.red}` : 0,
-                  background: priceError ? 'rgba(185,28,28,0.04)' : 'transparent',
-                  color: C.text,
-                  padding: '6px 8px',
-                  borderRadius: 8,
-                  textAlign: 'right'
-                }}
+                className={`text-xs font-semibold w-40 text-right input-field currency-input__input ${priceError ? 'input--error' : ''}`}
+                style={{ color: C.text }}
               />
               <span className="currency-suffix" aria-hidden style={{ marginLeft: 8, fontWeight: 700 }}>{'€'}</span>
             </div>
