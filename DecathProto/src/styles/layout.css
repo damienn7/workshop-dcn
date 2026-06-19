@@ -59,7 +59,7 @@
 
 /* Header tweaks */
 .app-header { padding-left: var(--screen-padding); padding-right: var(--screen-padding); }
-.app-header__back { color: rgba(255,255,255,0.9); }
+.app-header__back { color: rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center; height: 36px; border-radius: 999px; transition: background-color .12s ease, transform .06s ease, box-shadow .12s ease, opacity .06s ease; }
 .app-header__subtitle { color: rgba(255,255,255,0.75); }
 
 /* Buttons */
@@ -180,7 +180,7 @@ input, button, select, textarea {
   font-weight: 700;
   width: 100% !important;
   color: var(--color-text);
-  text-align: right;
+  text-align: left;
 }
 .input-field::placeholder {
   width: 100%;
@@ -304,7 +304,7 @@ input, button, select, textarea {
     top: 0;
     left: 0;
     right: 0;
-    width: 100vw;
+    width: 100%;
     z-index: 1000;
 }
 
@@ -321,7 +321,9 @@ input, button, select, textarea {
 
 .table-content-diags {
     max-height: 40vh;
+    width: 100%;
     overflow-y: auto;
+    border-color: transparent !important;
 }
 
 .qr-scan-button-home {
@@ -393,4 +395,18 @@ input, button, select, textarea {
     align-items: center;
     gap: 16px;
     align-self: stretch;
+}
+
+.table-section-home {
+    display: flex;
+    /* width: 347px; */
+    padding: 14px 16px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 9px;
+
+    border-radius: 10px;
+    border: 1px solid var(--Gris-clair, #E1E0DF);
+    background: #FFF;
 }

@@ -492,7 +492,7 @@ function Screen1({ go }: { go: (s: ScreenId) => void }) {
 
           <PrimaryButton onClick={() => { void handleCreateWithoutPrediag(); }}>Nouveau sans pré-diagnostic</PrimaryButton>
           {/* Liste dossiers */}
-          <div>
+          <div className="table-section-home">
             <SectionLabel>DOSSIERS EN ATTENTE</SectionLabel>
             <Card className="table-content-diags">
               {dossiers.map((d, i) => (
