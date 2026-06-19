@@ -32,4 +32,9 @@
   --card-padding: 16px;
 
   --mobile-max-width: 430px;
+
+  /* Typography */
+  --font-sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  --base-font-size: 14px;
+  --font-size: var(--base-font-size);
 }

@@ -110,7 +110,7 @@ function Card({ children, className = "" }: { children: React.ReactNode; classNa
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <p
-      className="text-[10px] font-bold tracking-[0.12em] uppercase mb-2"
+      className="section-label text-[10px] font-bold tracking-[0.12em] uppercase mb-2"
       style={{ color: C.textMuted }}
     >
       {children}
@@ -118,10 +118,11 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-function PrimaryButton({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) {
+function PrimaryButton({ children, onClick, style }: { children: React.ReactNode; onClick?: () => void; style?: React.CSSProperties }) {
   return (
     <button
       onClick={onClick}
+      style={style}
       className="primary-button py-3 px-6 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-opacity active:opacity-80 w-full sm:w-auto"
     >
       {children}
@@ -129,10 +130,11 @@ function PrimaryButton({ children, onClick }: { children: React.ReactNode; onCli
   );
 }
 
-function SecondaryButton({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) {
+function SecondaryButton({ children, onClick, style }: { children: React.ReactNode; onClick?: () => void; style?: React.CSSProperties }) {
   return (
     <button
       onClick={onClick}
+      style={style}
       className="secondary-button py-3 px-6 rounded-xl font-semibold text-sm w-full sm:w-auto transition-colors"
     >
       {children}
@@ -151,19 +153,13 @@ function ChoiceChip({
   danger?: boolean;
   onClick?: () => void;
 }) {
-  let style: React.CSSProperties;
-  if (danger && selected) {
-    style = { backgroundColor: C.redLight, borderColor: C.red, color: C.red };
-  } else if (selected) {
-    style = { backgroundColor: C.blueLight, borderColor: C.blue, color: C.blue };
-  } else {
-    style = { backgroundColor: C.bgPage, borderColor: C.border, color: C.textMuted };
-  }
   return (
     <button
       onClick={onClick}
-      className="px-3 py-2 rounded-lg border text-xs font-semibold transition-colors"
-      style={style}
+      data-selected={selected ? 'true' : 'false'}
+      data-danger={danger ? 'true' : 'false'}
+      aria-pressed={selected ? 'true' : 'false'}
+      className="choice-chip px-3 py-2 rounded-lg border text-xs font-semibold transition-colors"
     >
       {label}
     </button>
@@ -173,7 +169,7 @@ function ChoiceChip({
 function PhotoPlaceholder({ label }: { label: string }) {
   return (
     <div
-      className="flex-1 flex flex-col items-center justify-center gap-2 rounded-xl py-6 min-h-[90px]"
+      className="photo-placeholder flex-1 flex flex-col items-center justify-center gap-2 rounded-xl py-6 min-h-[90px]"
       style={{ border: `2px dashed ${C.border}`, backgroundColor: C.bgPage }}
     >
       <Camera size={18} style={{ color: C.border }} />
@@ -260,23 +256,19 @@ function NavButton({
   return (
     <div className="flex flex-col sm:flex-row gap-3 pt-2">
       {onPrev && (
-        <button
-          onClick={onPrev}
-          className="flex-1 py-3 px-5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
-          style={{ borderColor: C.border, backgroundColor: C.card, color: C.text }}
-        >
-          <ArrowLeft size={13} />
-          {prevLabel}
-        </button>
+        <div style={{ flex: 1 }}>
+          <SecondaryButton onClick={onPrev}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <ArrowLeft size={13} />
+              <span>{prevLabel}</span>
+            </div>
+          </SecondaryButton>
+        </div>
       )}
       {onNext && (
-        <button
-          onClick={onNext}
-          className="flex-1 py-3 px-5 rounded-xl text-white text-xs font-semibold transition-opacity active:opacity-80"
-          style={{ backgroundColor: C.blue }}
-        >
-          {nextLabel} →
-        </button>
+        <div style={{ flex: 1 }}>
+          <PrimaryButton onClick={onNext}>{nextLabel} →</PrimaryButton>
+        </div>
       )}
     </div>
   );
@@ -317,15 +309,16 @@ function PageShell({
   const stepMatch = subtitle ? subtitle.match(/Étape\s*(\d+)\s*\/\s*(\d+)/) : null;
   let stepBar: React.ReactNode = null;
   if (stepMatch) {
-    const stepIndex = Number(stepMatch[1]);
-    const total = Number(stepMatch[2]);
-    const segments = total + 1;
+    const rawIndex = Number(stepMatch[1]);
+    const total = Number(stepMatch[2]) || 0;
+    const activeIndex = Math.min(total, rawIndex + 1); // handle 0-based step numbering
     stepBar = (
       <div className="px-6 mt-3 mb-2">
         <div className="stepper" aria-hidden>
-          {Array.from({ length: segments }).map((_, i) => (
-            <div key={i} className={`stepper__segment ${i <= stepIndex ? 'stepper__segment--active' : ''}`} />
-          ))}
+          {Array.from({ length: total }).map((_, idx) => {
+            const i = idx + 1;
+            return <div key={i} className={`stepper__segment ${i <= activeIndex ? 'stepper__segment--active' : ''}`} />;
+          })}
         </div>
       </div>
     );
@@ -333,22 +326,7 @@ function PageShell({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Contextual header stripe */}
-      <div className="app-header flex-shrink-0 px-6 pt-5 pb-4">
-        {onBack && (
-          <button
-            onClick={onBack}
-            className="flex items-center gap-1.5 text-xs font-semibold mb-3 transition-opacity opacity-70 hover:opacity-100 app-header__back"
-          >
-            <ArrowLeft size={13} />
-            {backLabel ?? "Retour"}
-          </button>
-        )}
-        <h1 className="text-xl font-bold text-white leading-tight">{title}</h1>
-        {subtitle && (
-          <p className="text-sm mt-0.5 app-header__subtitle">{subtitle}</p>
-        )}
-      </div>
+      <AppHeader title={title} subtitle={subtitle} onBack={onBack} backLabel={backLabel} />
       {stepBar}
       <div className="flex-1 overflow-y-auto" style={{ backgroundColor: C.bgPage }}>
         <div className="p-6 flex flex-col gap-4 max-w-2xl">{children}</div>
@@ -800,29 +778,36 @@ function Screen4({ go }: { go: (s: ScreenId) => void }) {
   const [error, setError] = useState<string | null>(null);
   const [serialError, setSerialError] = useState<string | null>(null);
   const [priceError, setPriceError] = useState<string | null>(null);
-  // store formatted string value (grouped thousands) for display
+  // formatted display value (FR thousands and optional decimals)
+  function formatNumberForDisplay(n: number) {
+    if (!isFinite(n)) return '';
+    const s = String(n);
+    const hasDecimals = Math.abs(n - Math.trunc(n)) > 0;
+    const fracDigits = hasDecimals ? Math.min(2, (s.split('.')[1] || '').length) : 0;
+    return n.toLocaleString('fr-FR', { minimumFractionDigits: fracDigits, maximumFractionDigits: fracDigits });
+  }
+
   const initialPrice = (() => {
     const c = getCurrentCase();
     const v = c?.item?.estimatedBasePrice ?? c?.onlineEstimate ?? '';
-    return typeof v === 'number' ? Math.round(v).toLocaleString('fr-FR') : '';
+    return typeof v === 'number' ? formatNumberForDisplay(v) : '';
   })();
   const [estimatedBasePriceInput, setEstimatedBasePriceInput] = useState<string>(initialPrice);
 
   useEffect(() => {
-    // keep the input in sync when the current case is loaded or changes
     const c = getCurrentCase();
     if (c && typeof c.item?.estimatedBasePrice !== 'undefined' && c.item?.estimatedBasePrice !== null) {
-      setEstimatedBasePriceInput(Math.round(c.item.estimatedBasePrice).toLocaleString('fr-FR'));
+      setEstimatedBasePriceInput(formatNumberForDisplay(c.item.estimatedBasePrice));
     } else if (c && typeof c.onlineEstimate !== 'undefined' && c.onlineEstimate !== null) {
-      setEstimatedBasePriceInput(Math.round(c.onlineEstimate).toLocaleString('fr-FR'));
+      setEstimatedBasePriceInput(formatNumberForDisplay(c.onlineEstimate));
     } else {
       setEstimatedBasePriceInput('');
     }
     const unsub = subscribeCurrentCase((nc) => {
       if (nc && typeof nc.item?.estimatedBasePrice !== 'undefined' && nc.item?.estimatedBasePrice !== null) {
-        setEstimatedBasePriceInput(Math.round(nc.item.estimatedBasePrice).toLocaleString('fr-FR'));
+        setEstimatedBasePriceInput(formatNumberForDisplay(nc.item.estimatedBasePrice));
       } else if (nc && typeof nc.onlineEstimate !== 'undefined' && nc.onlineEstimate !== null) {
-        setEstimatedBasePriceInput(Math.round(nc.onlineEstimate).toLocaleString('fr-FR'));
+        setEstimatedBasePriceInput(formatNumberForDisplay(nc.onlineEstimate));
       } else {
         setEstimatedBasePriceInput('');
       }
@@ -831,10 +816,15 @@ function Screen4({ go }: { go: (s: ScreenId) => void }) {
   }, []);
 
   function handlePriceChange(e: React.ChangeEvent<HTMLInputElement>) {
-    // keep only digits and format with thousands separator for display
     const raw = e.currentTarget.value || '';
-    const digits = raw.replace(/\D/g, '');
-    const formatted = digits ? Number(digits).toLocaleString('fr-FR') : '';
+    // keep digits and separators, unify to comma for display
+    const allowed = raw.replace(/[^\d,\.]/g, '');
+    const withComma = allowed.replace(/\./g, ',');
+    const parts = withComma.split(',');
+    const intPart = (parts[0] || '').replace(/\s/g, '');
+    const decPart = parts.slice(1).join('');
+    const formattedInt = intPart ? Number(intPart).toLocaleString('fr-FR') : (decPart ? '0' : '');
+    const formatted = decPart ? `${formattedInt},${decPart}` : formattedInt;
     setEstimatedBasePriceInput(formatted);
     setPriceError(null);
     setError(null);
@@ -881,22 +871,25 @@ function Screen4({ go }: { go: (s: ScreenId) => void }) {
         >
           <div className="flex justify-between items-center">
             <span className="text-xs" style={{ color: C.textMuted }}>Prix estimé (€)</span>
-            <input
-              inputMode="numeric"
-              pattern="[0-9]*"
-              value={estimatedBasePriceInput}
-              onChange={handlePriceChange}
-              placeholder="Ex: 120"
-              className="text-xs font-semibold w-40 text-right"
-              style={{
-                border: priceError ? `1.5px solid ${C.red}` : 0,
-                background: priceError ? 'rgba(185,28,28,0.04)' : 'transparent',
-                color: C.text,
-                padding: '6px 8px',
-                borderRadius: 8,
-                textAlign: 'right'
-              }}
-            />
+            <div className="currency-input" style={{ display: 'inline-flex', alignItems: 'center' }}>
+              <input
+                inputMode="decimal"
+                pattern="[0-9,\.]*"
+                value={estimatedBasePriceInput}
+                onChange={handlePriceChange}
+                placeholder="Ex: 120"
+                className="text-xs font-semibold w-40 text-right"
+                style={{
+                  border: priceError ? `1.5px solid ${C.red}` : 0,
+                  background: priceError ? 'rgba(185,28,28,0.04)' : 'transparent',
+                  color: C.text,
+                  padding: '6px 8px',
+                  borderRadius: 8,
+                  textAlign: 'right'
+                }}
+              />
+              <span className="currency-suffix" aria-hidden style={{ marginLeft: 8, fontWeight: 700 }}>{'€'}</span>
+            </div>
           </div>
           {priceError && <p className="text-xs mt-1" style={{ color: C.red }}>{priceError}</p>}
         </div>
@@ -1063,8 +1056,7 @@ function Screen6({ go }: { go: (s: ScreenId) => void }) {
         <SectionLabel>FREINS 25%</SectionLabel>
         <div className="mt-2">
           <div className="mb-4">
-            <p className="text-xs font-semibold mb-1" style={{ color: C.text }}>Type</p>
-            <p className="text-xs" style={{ color: C.textMuted }}>V-brake / patins</p>
+              <InfoField label="Type" value="V-brake / patins" />
           </div>
           <QuestionChips question="Efficacité avant" options={["Correct", "Faible", "Inefficace"]} selected={ans.av} onSelect={(v) => set("av", v)} />
           <QuestionChips question="Efficacité arrière" options={["Correct", "Faible", "Inefficace"]} selected={ans.ar} onSelect={(v) => set("ar", v)} />
@@ -1111,6 +1103,9 @@ function Screen7({ go }: { go: (s: ScreenId) => void }) {
       <Card className="p-4">
         <p className="text-xs font-bold mb-1" style={{ color: C.text }}>Transmission · pondération 25%</p>
         <p className="text-xs mb-4" style={{ color: C.textMuted }}>Client : petites difficultés de transmission. Vérifier dérailleur.</p>
+        <InfoBox color="blue">
+          Vérifier le passage des vitesses et l'état de la chaîne.
+        </InfoBox>
         <SectionLabel>TRANSMISSION 25%</SectionLabel>
         <div className="mt-2">
           <QuestionChips question="Chaîne" options={["Propre / huilée", "Sale / sèche", "Étirée"]} selected={ans.chaine} onSelect={(v) => set("chaine", v)} />
@@ -1157,6 +1152,7 @@ function Screen8({ go }: { go: (s: ScreenId) => void }) {
     <PageShell title="Roues & pneus" subtitle="Étape 4 / 5" onBack={() => go(6)} backLabel="Transmission">
       <Card className="p-4">
         <p className="text-xs font-bold mb-1" style={{ color: C.text }}>Roues & pneus · pondération 10%</p>
+        <InfoBox color="blue">Vérifier l'absence de voilage et l'état des pneus.</InfoBox>
         <SectionLabel>ROUES & PNEUS 10%</SectionLabel>
         <div className="mt-2">
           <QuestionChips question="État des jantes" options={["Droites", "Léger voilage", "Voilage important"]} selected={ans.jantes} onSelect={(v) => set("jantes", v)} />
@@ -1204,6 +1200,7 @@ function Screen9({ go }: { go: (s: ScreenId) => void }) {
     <PageShell title="Finitions" subtitle="Étape 5 / 5" onBack={() => go(7)} backLabel="Roues">
       <Card className="p-4">
         <p className="text-xs font-bold mb-1" style={{ color: C.text }}>Finitions · pondération 10%</p>
+        <InfoBox color="blue">Vérifier selle, guidon et propreté générale.</InfoBox>
         <SectionLabel>FINITIONS 10%</SectionLabel>
         <div className="mt-2">
           <QuestionChips question="Selle" options={["Bon état", "Usée", "Déchirée"]} selected={ans.selle} onSelect={(v) => set("selle", v)} />
@@ -1215,7 +1212,7 @@ function Screen9({ go }: { go: (s: ScreenId) => void }) {
           <textarea
             placeholder="Notes libres…"
             rows={3}
-            className="w-full px-3 py-2 rounded-xl border text-xs resize-none outline-none transition-colors"
+            className="w-full px-3 py-2 rounded-xl border text-xs resize-none outline-none transition-colors textarea"
             style={{ borderColor: C.border, color: C.text, backgroundColor: C.bgPage }}
             onFocus={(e) => (e.currentTarget.style.borderColor = C.blue)}
             onBlur={(e) => (e.currentTarget.style.borderColor = C.border)}
@@ -1346,16 +1343,26 @@ function Screen11({ go }: { go: (s: ScreenId) => void }) {
   const score = caseData?.scoring;
   const technicianScore = score?.technicianScore ?? 61;
   const decisionStatus = score?.decision ?? 'conditional';
-  const finalOffer = caseData?.finalOffer ?? score?.finalOffer ?? 58;
+  const initialOffer = caseData?.finalOffer ?? score?.finalOffer ?? 58;
+  const [adjustedOffer, setAdjustedOffer] = useState<string>(String(initialOffer));
+  const [adjustReason, setAdjustReason] = useState<string>('Aucun ajustement');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const displayOffer = (() => {
+    const parsed = Number(String(adjustedOffer).replace(',', '.'));
+    return Number.isFinite(parsed) && !isNaN(parsed) ? parsed : initialOffer;
+  })();
 
   const handleAccept = async () => {
     setLoading(true);
     setError(null);
     try {
       const number = caseData?.caseNumber ?? 'DEC-00487';
-      await diagApi.acceptDecision(number, { finalOffer, manualAdjustment: false, adjustmentReason: null });
+      const parsed = Number(String(adjustedOffer).replace(/[^0-9,.-]/g, '').replace(',', '.'));
+      const parsedOffer = Number.isFinite(parsed) && !isNaN(parsed) ? parsed : initialOffer;
+      const manual = parsedOffer !== initialOffer;
+      await diagApi.acceptDecision(number, { finalOffer: parsedOffer, manualAdjustment: manual, adjustmentReason: manual ? adjustReason : null });
       const updated = await diagApi.getCase(number);
       setCurrentCase(updated as BuybackCase);
       go(11);
@@ -1394,7 +1401,7 @@ function Screen11({ go }: { go: (s: ScreenId) => void }) {
             <p className="text-xs mt-1.5" style={{ color: C.textMuted }}>{decisionStatus === 'accepted' ? 'Reprise acceptée' : decisionStatus === 'refused' ? 'Reprise refusée' : 'Remise en état nécessaire'}</p>
           </div>
           <div className="text-right">
-            <p className="text-5xl font-bold" style={{ color: C.text, letterSpacing: "-0.02em" }}>{finalOffer} €</p>
+            <p className="text-5xl font-bold" style={{ color: C.text, letterSpacing: "-0.02em" }}>{displayOffer} €</p>
             <p className="text-[10px] uppercase tracking-widest mt-1" style={{ color: C.textMuted }}>offre de reprise</p>
           </div>
         </div>
@@ -1427,7 +1434,7 @@ function Screen11({ go }: { go: (s: ScreenId) => void }) {
           ))}
           <div className="flex justify-between pt-3 mt-1">
             <span className="text-xs font-bold" style={{ color: C.text }}>Offre nette</span>
-            <span className="text-xs font-bold" style={{ color: C.blue }}>58 €</span>
+            <span className="text-xs font-bold" style={{ color: C.blue }}>{displayOffer} €</span>
           </div>
         </div>
       </Card>
@@ -1440,7 +1447,8 @@ function Screen11({ go }: { go: (s: ScreenId) => void }) {
             <p className="text-xs mb-1" style={{ color: C.textMuted }}>Prix de reprise (€) · fourchette 45–70 €</p>
             <input
               type="number"
-              defaultValue={58}
+              value={adjustedOffer}
+              onChange={(e) => setAdjustedOffer(e.currentTarget.value)}
               className="w-full sm:w-40 h-10 px-3 border rounded-xl text-sm font-bold outline-none transition-colors"
               style={{ borderColor: C.border, color: C.text }}
               onFocus={(e) => (e.currentTarget.style.borderColor = C.blue)}
@@ -1451,7 +1459,8 @@ function Screen11({ go }: { go: (s: ScreenId) => void }) {
             <p className="text-xs mb-1" style={{ color: C.textMuted }}>Motif d'ajustement</p>
             <input
               type="text"
-              defaultValue="Aucun ajustement"
+              value={adjustReason}
+              onChange={(e) => setAdjustReason(e.currentTarget.value)}
               className="w-full h-10 px-3 border rounded-xl text-xs outline-none transition-colors"
               style={{ borderColor: C.border, color: C.text }}
               onFocus={(e) => (e.currentTarget.style.borderColor = C.blue)}
@@ -1462,20 +1471,16 @@ function Screen11({ go }: { go: (s: ScreenId) => void }) {
       </Card>
 
       <div className="flex flex-col sm:flex-row gap-3">
-        <button
-          onClick={() => { void handleRefuse(); }}
-          className="flex-1 py-3 px-6 rounded-xl border text-sm font-bold transition-colors"
-          style={{ borderColor: C.red, backgroundColor: C.redLight, color: C.red }}
-        >
-          ✕ Refuser
-        </button>
-        <button
-          onClick={() => { void handleAccept(); }}
-          className="flex-1 py-3 px-6 rounded-xl text-white text-sm font-bold transition-opacity active:opacity-80"
-          style={{ backgroundColor: C.green }}
-        >
-          {loading ? 'En cours...' : `✓ Valider ${finalOffer} €`}
-        </button>
+        <div style={{ flex: 1 }}>
+          <SecondaryButton onClick={() => { void handleRefuse(); }} style={{ borderColor: C.red, backgroundColor: C.redLight, color: C.red }}>
+            ✕ Refuser
+          </SecondaryButton>
+        </div>
+        <div style={{ flex: 1 }}>
+          <PrimaryButton onClick={() => { void handleAccept(); }} style={{ backgroundColor: C.green }}>
+            {loading ? 'En cours...' : `✓ Valider ${displayOffer} €`}
+          </PrimaryButton>
+        </div>
       </div>
       {error && <p className="text-xs mt-2" style={{ color: C.red }}>{error}</p>}
     </PageShell>

@@ -7,6 +7,11 @@
   background: var(--color-bg);
   overflow-x: hidden;
   box-shadow: 0 6px 20px rgba(2,6,23,0.06);
+
+  /* typography */
+  font-family: var(--font-sans);
+  font-size: var(--base-font-size);
+  color: var(--color-text);
 }
 
 /* Header radius and spacing helper used by App headers */
@@ -15,6 +20,8 @@
   color: #fff;
   border-bottom-left-radius: var(--radius-header);
   border-bottom-right-radius: var(--radius-header);
+  padding-top: 18px;
+  padding-bottom: 18px;
 }
 
 /* Content padding consistent with frames */
@@ -29,21 +36,25 @@
   border: 1px solid var(--color-border);
 }
 
-/* Stepper */
+/* Stepper (compact variant) */
 .stepper {
-  height: 6px;
+  height: 8px;
   background: transparent;
   display: flex;
   gap: 6px;
+  align-items: center;
 }
 .stepper__segment {
   flex: 1;
-  height: 6px;
-  border-radius: 6px;
+  height: 8px;
+  border-radius: 999px;
   background: var(--color-border);
+  transition: background-color .12s ease, transform .12s ease;
 }
 .stepper__segment--active {
-  background: var(--color-primary);
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-dark));
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(57,71,196,0.12);
 }
 
 /* Header tweaks */
@@ -57,14 +68,16 @@
   color: #fff;
   border: 0;
   border-radius: var(--radius-button);
-  padding: 12px 18px;
-  font-weight: 600;
+  padding: 10px 16px;
+  min-height: 44px;
+  font-size: 15px;
+  font-weight: 700;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   transition: background-color .12s ease, transform .06s ease, box-shadow .12s ease, opacity .06s ease;
-  box-shadow: 0 6px 18px rgba(57,71,196,0.08);
+  box-shadow: 0 8px 28px rgba(57,71,196,0.12);
 }
 .primary-button:hover { background: var(--color-primary-dark); transform: translateY(-1px); box-shadow: 0 10px 24px rgba(57,71,196,0.12); }
 .primary-button:active { transform: translateY(0); opacity: 0.95; box-shadow: none; }
@@ -73,13 +86,35 @@
   background: var(--color-surface);
   color: var(--color-text);
   border-radius: var(--radius-button);
-  padding: 12px 18px;
+  padding: 10px 16px;
+  min-height: 44px;
+  font-size: 15px;
+  font-weight: 600;
   border: 1.5px solid var(--color-border);
   transition: background-color .12s ease, border-color .12s ease;
 }
 .secondary-button:hover { background: var(--color-border-soft); border-color: var(--color-border); }
 
+/* Responsive: full-width action buttons on small screens */
+@media (max-width: 640px) {
+  .primary-button,
+  .secondary-button {
+    width: 100% !important;
+    display: flex;
+  }
+  .mobile-shell {
+    padding-bottom: 28px;
+  }
+  .card {
+    padding: 14px;
+  }
+  .screen-content {
+    padding: 24px;
+  }
+}
+
 /* Tabs (segmented control) */
+/* Stepper styles consolidated above */
 .tabs {
   display: flex;
   gap: 6px;
@@ -133,6 +168,27 @@ input, button, select, textarea {
   background: rgba(185,28,28,0.04);
   padding: 4px 8px;
 }
+
+/* Currency input styling */
+.currency-input { display: inline-flex; align-items: center; }
+.currency-input input { background: transparent; border: 0; }
+.currency-suffix { color: var(--color-text); }
+
+/* Choice chips */
+.choice-chip { display: inline-flex; align-items: center; gap: 8px; border-color: var(--color-border); background: var(--color-surface); color: var(--color-text); padding: 8px 10px; border-radius: 10px; font-size: 13px; font-weight: 700; }
+.choice-chip[data-selected="true"] { background: var(--color-primary); color: #fff; border-color: var(--color-primary); box-shadow: 0 8px 18px rgba(57,71,196,0.12); transform: translateY(-1px); }
+.choice-chip[data-danger="true"][data-selected="true"] { background: var(--color-danger); color: #fff; border-color: var(--color-danger); box-shadow: 0 8px 18px rgba(185,28,28,0.12); }
+
+/* Photo placeholder */
+.photo-placeholder { border-radius: 12px; min-height: 110px; border: 2px dashed var(--color-border); background: var(--color-surface); padding: 14px; display: flex; align-items: center; justify-content: center; }
+.photo-placeholder svg { color: var(--color-border); }
+.photo-placeholder .text-[10px] { color: var(--color-muted); font-weight: 700; }
+
+/* Section label refinements */
+.section-label { letter-spacing: 0.12em; font-size: 11px; font-weight: 800; color: var(--color-muted); margin-bottom: 8px; text-transform: uppercase; }
+
+/* Textarea tweak */
+.textarea { min-height: 78px; padding: 10px; }
 
 /* Stepper */
 .stepper {
