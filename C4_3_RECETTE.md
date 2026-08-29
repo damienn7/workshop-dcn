@@ -11,8 +11,8 @@ Cette recette documente l'état réel avant correction des défauts métier. Les
 | Commande | Résultat | Détail |
 |----------|----------|--------|
 | `cd backend && npm test -- src/modules/diagnostics/diagnostics.routes.test.ts` | PASS | 9 tests passants |
-| `cd backend && npm test -- src/modules/scoring/scoring.routes.test.ts` | FAIL attendu | 7 passants, 2 échecs `[DEFECT]` |
-| `cd backend && npm test` | FAIL attendu | 63 passants, 6 échecs `[DEFECT]` |
+| `cd backend && npm test -- src/modules/scoring/scoring.routes.test.ts` | FAIL attendu | 8 passants, 1 échec `[DEFECT]` |
+| `cd backend && npm test` | FAIL attendu | 65 passants, 4 échecs `[DEFECT]` |
 | `cd backend && npm run typecheck` | PASS | `tsc --noEmit` sans erreur |
 | `cd DecathProto && npm run test:e2e` | PASS | 2 tests Playwright passants |
 
@@ -25,12 +25,12 @@ Cette recette documente l'état réel avant correction des défauts métier. Les
 | C43-BE-020 | Scoring accepté / conditionnel / refusé | PASS | Les décisions numériques principales sont conformes |
 | C43-BE-021 | Bornes 50 et 75 | PASS | 50 donne `conditional`, 75 donne `accepted` |
 | C43-BE-022-A | `no_shock` ne doit pas bloquer | FAIL attendu | Le moteur détecte `shock` dans `no_shock` |
-| C43-BE-022-B | Diagnostic incomplet refusé | FAIL attendu | Le service calcule encore un score |
+| C43-BE-022-B | Diagnostic incomplet refusé | PASS | Le service refuse le scoring incomplet |
 | C43-BE-022-C | Offre finale non négative | FAIL attendu | Une offre à `-50` peut être produite |
 | C43-BE-022-D | Libellé UI français bloquant | FAIL attendu | `Oui — bloquant` n'est pas reconnu |
 | C43-API-030 | Diagnostic API + Prisma | PASS | Démarrage et sections persistés |
 | C43-API-040 | Score et décision API | PASS partiel | Flux score, acceptation, ajustement et refus principal passent |
-| C43-API-041-A | API score diagnostic incomplet | FAIL attendu | `POST /score` renvoie `200` au lieu de `400` |
+| C43-API-041-A | API score diagnostic incomplet | PASS | `POST /score` renvoie `400` avec l'erreur métier |
 | C43-API-041-B | Détails de refus | FAIL attendu | Raisons non renvoyées, alternatives non persistées |
 | C43-E2E-001 | Parcours technicien complet | PASS | Dossier ouvert, diagnostic complété, score généré, décision acceptée et état relu via API |
 

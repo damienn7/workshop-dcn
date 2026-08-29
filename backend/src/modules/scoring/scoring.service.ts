@@ -36,6 +36,29 @@ function computeCategoryScores(diagnosis: any, preDiagnostic: any) {
   return categories;
 }
 
+const REQUIRED_DIAGNOSIS_SECTIONS = [
+  ['identification', 'Identification'],
+  ['frameFork', 'Cadre & fourche'],
+  ['brakes', 'Freins'],
+  ['transmission', 'Transmission'],
+  ['wheelsTires', 'Roues & pneus'],
+  ['finishing', 'Finitions']
+] as const;
+
+function isSectionComplete(section: unknown) {
+  return typeof section === 'object' && section !== null && Object.keys(section).length > 0;
+}
+
+function assertCompleteDiagnosis(diagnosis: any) {
+  const missing = REQUIRED_DIAGNOSIS_SECTIONS
+    .filter(([key]) => !isSectionComplete(diagnosis?.[key]))
+    .map(([, label]) => `Section manquante: ${label}`);
+
+  if (missing.length > 0) {
+    throw new ApiError(400, 'Scoring impossible: diagnostic incomplet', missing);
+  }
+}
+
 function computeRepairsAndBlocking(diagnosis: any, item: any) {
   const repairs: RepairItem[] = [];
   const blocking: string[] = [];
@@ -90,6 +113,7 @@ function computeRepairsAndBlocking(diagnosis: any, item: any) {
 
 export async function calculateScoreForCase(caseObj: any): Promise<ScoringResult> {
   const diagnosis = caseObj.diagnosis || {};
+  assertCompleteDiagnosis(diagnosis);
   const pre = caseObj.preDiagnostic || {};
   const categoryScores = computeCategoryScores(diagnosis, pre);
 
