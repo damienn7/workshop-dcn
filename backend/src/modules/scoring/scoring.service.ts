@@ -59,13 +59,44 @@ function assertCompleteDiagnosis(diagnosis: any) {
   }
 }
 
+function normalizeDiagnosisLabel(value: unknown) {
+  return String(value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+function hasBlockingFrameShock(value: unknown) {
+  const normalized = normalizeDiagnosisLabel(value);
+  if (
+    !normalized ||
+    ['no', 'non', 'no_shock', 'no shock', 'no issue', 'no_issue'].includes(normalized) ||
+    normalized.startsWith('no ') ||
+    normalized.startsWith('non ') ||
+    normalized.includes('aucun') ||
+    normalized.includes('absence')
+  ) {
+    return false;
+  }
+
+  return (
+    normalized.includes('shock') ||
+    normalized.includes('choc') ||
+    normalized.includes('deformation') ||
+    normalized.includes('yes') ||
+    normalized.includes('oui') ||
+    normalized.includes('bloquant')
+  );
+}
+
 function computeRepairsAndBlocking(diagnosis: any, item: any) {
   const repairs: RepairItem[] = [];
   const blocking: string[] = [];
   const costs = scoringConfig.repairCosts as any;
 
   const frame = diagnosis?.frameFork ?? {};
-  if (String(frame.shockDeformation || '').toLowerCase().includes('shock') || String(frame.shockDeformation || '').toLowerCase().includes('yes')) {
+  if (hasBlockingFrameShock(frame.shockDeformation)) {
     blocking.push('Cadre avec choc ou déformation');
   }
   if (String(frame.fork || '').toLowerCase().includes('out_of_service') || String(frame.fork || '').toLowerCase().includes('out')) {
