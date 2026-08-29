@@ -51,6 +51,7 @@ export type BuybackCase = {
   customerScore?: number | null;
   onlineEstimate?: number | null;
   refusalReasons?: string[];
+  refusalAlternatives?: string[];
   finalOffer?: number | null;
   diagnosis?: unknown;
   scoring?: ScoreResult;

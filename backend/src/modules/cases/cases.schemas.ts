@@ -55,7 +55,8 @@ export const BuybackCaseSchema = z.object({
   scoring: z.any().optional(),
   startedAt: z.string().optional(),
   completedAt: z.string().optional(),
-  refusalReasons: z.array(z.string()).optional()
+  refusalReasons: z.array(z.string()).optional(),
+  refusalAlternatives: z.array(z.string()).optional()
 });
 
 export const NewCaseSchema = z.object({

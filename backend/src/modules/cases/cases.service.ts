@@ -36,6 +36,9 @@ function mapDbCaseToApi(dbCase: any): BuybackCase {
     explanations: dbCase.scoreResult.explanationsJson ? JSON.parse(dbCase.scoreResult.explanationsJson) : []
   } : undefined;
 
+  const refusalReasons = dbCase.decision?.refusalReasonsJson ? JSON.parse(dbCase.decision.refusalReasonsJson) : undefined;
+  const refusalAlternatives = dbCase.decision?.alternativesJson ? JSON.parse(dbCase.decision.alternativesJson) : undefined;
+
   const apiCase: BuybackCase = {
     id: dbCase.id,
     caseNumber: dbCase.caseNumber,
@@ -62,7 +65,9 @@ function mapDbCaseToApi(dbCase: any): BuybackCase {
     onlineEstimate: dbCase.onlineEstimate ?? undefined,
     finalOffer: dbCase.finalOffer ?? undefined,
     diagnosis,
-    scoring
+    scoring,
+    refusalReasons,
+    refusalAlternatives
   } as BuybackCase;
 
   return apiCase;
@@ -193,7 +198,7 @@ export async function setFinalOffer(caseNumber: string, offer: number | null) {
   return mapDbCaseToApi(await prisma.buybackCase.findUnique({ where: { caseNumber }, include: { customer: true, preDiagnostic: true, diagnosis: true, scoreResult: true, decision: true } }));
 }
 
-export async function setRefusal(caseNumber: string, reasons: string[]) {
+export async function setRefusal(caseNumber: string, reasons: string[], alternatives: string[] = []) {
   const c = await prisma.buybackCase.findUnique({ where: { caseNumber } });
   if (!c) throw new ApiError(404, 'Dossier introuvable');
   await prisma.decision.upsert({
@@ -202,6 +207,7 @@ export async function setRefusal(caseNumber: string, reasons: string[]) {
       status: 'refused',
       finalOffer: 0,
       refusalReasonsJson: JSON.stringify(reasons),
+      alternativesJson: JSON.stringify(alternatives),
       completedAt: new Date()
     },
     create: {
@@ -209,6 +215,7 @@ export async function setRefusal(caseNumber: string, reasons: string[]) {
       status: 'refused',
       finalOffer: 0,
       refusalReasonsJson: JSON.stringify(reasons),
+      alternativesJson: JSON.stringify(alternatives),
       completedAt: new Date()
     }
   });

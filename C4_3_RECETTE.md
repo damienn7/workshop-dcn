@@ -4,15 +4,15 @@
 
 Baseline exécutée sur `rattrapage-bc4` après ajout des tests backend de caractérisation, d'acceptation métier et d'intégration API.
 
-Cette recette documente l'état réel avant correction des défauts métier. Les tests `[DEFECT]` sont volontairement en échec afin de servir de preuve de non-conformité et de garde-fou pour les commits de correction.
+Cette recette documente l'état réel après conservation de la baseline puis correction des défauts métier. Les tests `[DEFECT]` restent nommés ainsi pour garder la preuve historique de non-conformité, mais ils sont maintenant passants.
 
 ## Résultats automatisés
 
 | Commande | Résultat | Détail |
 |----------|----------|--------|
 | `cd backend && npm test -- src/modules/diagnostics/diagnostics.routes.test.ts` | PASS | 9 tests passants |
-| `cd backend && npm test -- src/modules/scoring/scoring.routes.test.ts` | FAIL attendu | 8 passants, 1 échec `[DEFECT]` |
-| `cd backend && npm test` | FAIL attendu | 68 passants, 1 échec `[DEFECT]` |
+| `cd backend && npm test -- src/modules/scoring/scoring.routes.test.ts` | PASS | 9 tests passants |
+| `cd backend && npm test` | PASS | 69 tests passants |
 | `cd backend && npm run typecheck` | PASS | `tsc --noEmit` sans erreur |
 | `cd DecathProto && npm run test:e2e` | PASS | 2 tests Playwright passants |
 
@@ -29,9 +29,9 @@ Cette recette documente l'état réel avant correction des défauts métier. Les
 | C43-BE-022-C | Offre finale non négative | PASS | L'offre est bornée à 0 minimum |
 | C43-BE-022-D | Libellé UI français bloquant | PASS | `Oui — bloquant` déclenche le refus métier |
 | C43-API-030 | Diagnostic API + Prisma | PASS | Démarrage et sections persistés |
-| C43-API-040 | Score et décision API | PASS partiel | Flux score, acceptation, ajustement et refus principal passent |
+| C43-API-040 | Score et décision API | PASS | Flux score, acceptation, ajustement et refus passent |
 | C43-API-041-A | API score diagnostic incomplet | PASS | `POST /score` renvoie `400` avec l'erreur métier |
-| C43-API-041-B | Détails de refus | FAIL attendu | Raisons non renvoyées, alternatives non persistées |
+| C43-API-041-B | Détails de refus | PASS | Raisons renvoyées et alternatives persistées |
 | C43-E2E-001 | Parcours technicien complet | PASS | Dossier ouvert, diagnostic complété, score généré, décision acceptée et état relu via API |
 
 ## Décision de recette baseline

@@ -68,8 +68,13 @@ router.post('/:caseNumber/decision/refuse', asyncHandler(async (req, res) => {
   if (!c) throw new ApiError(404, 'Dossier introuvable');
   const body = req.body as { reasons?: string[]; alternatives?: string[] };
   const reasons = body.reasons ?? [];
-  const updated = await setRefusal(req.params.caseNumber, reasons);
-  res.json({ message: 'Refusé', reasons: updated.refusalReasons ?? [], alternatives: body.alternatives ?? [] });
+  const alternatives = body.alternatives ?? [];
+  const updated = await setRefusal(req.params.caseNumber, reasons, alternatives);
+  res.json({
+    message: 'Refusé',
+    reasons: updated.refusalReasons ?? reasons,
+    alternatives: updated.refusalAlternatives ?? alternatives
+  });
 }));
 
 export default router;
