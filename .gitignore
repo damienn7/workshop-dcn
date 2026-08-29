@@ -149,3 +149,6 @@ backend/prisma/test*.db-wal
 backend/prisma/test*.db-shm
 backend/test-results/
 backend/playwright-report/
+DecathProto/test-results/
+DecathProto/playwright-report/
+DecathProto/blob-report/
