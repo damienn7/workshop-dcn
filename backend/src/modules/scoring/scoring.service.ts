@@ -134,6 +134,7 @@ export async function calculateScoreForCase(caseObj: any): Promise<ScoringResult
 
   let finalOffer = baseBuybackValue - repairsTotal - recond - risk;
   finalOffer = Math.round(finalOffer / 5) * 5;
+  finalOffer = Math.max(0, finalOffer);
   if (blocking.length > 0) finalOffer = 0;
 
   const decision = blocking.length > 0 ? 'refused' : technicianScore >= scoringConfig.decisionThresholds.accepted ? 'accepted' : technicianScore >= scoringConfig.decisionThresholds.conditional ? 'conditional' : 'refused';

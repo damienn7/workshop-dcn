@@ -12,7 +12,7 @@ Cette recette documente l'état réel avant correction des défauts métier. Les
 |----------|----------|--------|
 | `cd backend && npm test -- src/modules/diagnostics/diagnostics.routes.test.ts` | PASS | 9 tests passants |
 | `cd backend && npm test -- src/modules/scoring/scoring.routes.test.ts` | FAIL attendu | 8 passants, 1 échec `[DEFECT]` |
-| `cd backend && npm test` | FAIL attendu | 65 passants, 4 échecs `[DEFECT]` |
+| `cd backend && npm test` | FAIL attendu | 66 passants, 3 échecs `[DEFECT]` |
 | `cd backend && npm run typecheck` | PASS | `tsc --noEmit` sans erreur |
 | `cd DecathProto && npm run test:e2e` | PASS | 2 tests Playwright passants |
 
@@ -26,7 +26,7 @@ Cette recette documente l'état réel avant correction des défauts métier. Les
 | C43-BE-021 | Bornes 50 et 75 | PASS | 50 donne `conditional`, 75 donne `accepted` |
 | C43-BE-022-A | `no_shock` ne doit pas bloquer | FAIL attendu | Le moteur détecte `shock` dans `no_shock` |
 | C43-BE-022-B | Diagnostic incomplet refusé | PASS | Le service refuse le scoring incomplet |
-| C43-BE-022-C | Offre finale non négative | FAIL attendu | Une offre à `-50` peut être produite |
+| C43-BE-022-C | Offre finale non négative | PASS | L'offre est bornée à 0 minimum |
 | C43-BE-022-D | Libellé UI français bloquant | FAIL attendu | `Oui — bloquant` n'est pas reconnu |
 | C43-API-030 | Diagnostic API + Prisma | PASS | Démarrage et sections persistés |
 | C43-API-040 | Score et décision API | PASS partiel | Flux score, acceptation, ajustement et refus principal passent |
