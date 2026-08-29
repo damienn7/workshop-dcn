@@ -21,7 +21,7 @@ Ce plan sert de preuve RNCP C4.3 pour la conception, l'exécution et l'exploitat
 | Acceptation métier | Règles de score et seuils de décision | Vitest | Automatisé |
 | API intégration | Diagnostic HTTP + persistance Prisma | Vitest, Supertest, Prisma | Automatisé |
 | API intégration | Scoring + décisions finales | Vitest, Supertest, Prisma | Automatisé |
-| E2E | Parcours technicien complet frontend + backend | Playwright | À automatiser |
+| E2E | Parcours technicien complet frontend + backend | Playwright | Automatisé |
 
 ## Hors périmètre initial
 
@@ -73,7 +73,7 @@ Les fixtures couvrent :
 | C43-API-030 | API | Démarrage et sauvegarde du diagnostic | `backend/src/modules/diagnostics/diagnostics.routes.test.ts` |
 | C43-API-040 | API | Score, acceptation, ajustement, refus | `backend/src/modules/scoring/scoring.routes.test.ts` |
 | C43-API-041 | Défaut | Scoring incomplet et détails de refus | `backend/src/modules/scoring/scoring.routes.test.ts` |
-| C43-E2E-001 | E2E | Parcours technicien complet accepté | À créer |
+| C43-E2E-001 | E2E | Parcours technicien complet accepté | `DecathProto/e2e/technician-workflow.spec.ts` |
 
 ## Critères d'acceptation
 

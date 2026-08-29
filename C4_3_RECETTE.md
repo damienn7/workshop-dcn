@@ -14,6 +14,7 @@ Cette recette documente l'état réel avant correction des défauts métier. Les
 | `cd backend && npm test -- src/modules/scoring/scoring.routes.test.ts` | FAIL attendu | 7 passants, 2 échecs `[DEFECT]` |
 | `cd backend && npm test` | FAIL attendu | 63 passants, 6 échecs `[DEFECT]` |
 | `cd backend && npm run typecheck` | PASS | `tsc --noEmit` sans erreur |
+| `cd DecathProto && npm run test:e2e` | PASS | 2 tests Playwright passants |
 
 ## Détail par cas
 
@@ -31,7 +32,7 @@ Cette recette documente l'état réel avant correction des défauts métier. Les
 | C43-API-040 | Score et décision API | PASS partiel | Flux score, acceptation, ajustement et refus principal passent |
 | C43-API-041-A | API score diagnostic incomplet | FAIL attendu | `POST /score` renvoie `200` au lieu de `400` |
 | C43-API-041-B | Détails de refus | FAIL attendu | Raisons non renvoyées, alternatives non persistées |
-| C43-E2E-001 | Parcours technicien complet | À exécuter | Infrastructure Playwright non encore ajoutée |
+| C43-E2E-001 | Parcours technicien complet | PASS | Dossier ouvert, diagnostic complété, score généré, décision acceptée et état relu via API |
 
 ## Décision de recette baseline
 
