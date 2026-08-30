@@ -33,7 +33,7 @@ COPY docker-entrypoint.sh ./docker-entrypoint.sh
 RUN npm prune --omit=dev \
   && npm cache clean --force \
   && mkdir -p /app/data \
-  && chown -R node:node /app \
+  && chown node:node /app/data \
   && chmod +x /app/docker-entrypoint.sh
 
 USER node
