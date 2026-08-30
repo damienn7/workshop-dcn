@@ -1,0 +1,12 @@
+node_modules
+dist
+coverage
+.env
+.env.*
+npm-debug.log*
+*.log
+prisma/dev.db
+prisma/*.db
+prisma/*.db-*
+test-results
+playwright-report

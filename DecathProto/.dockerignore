@@ -1,0 +1,9 @@
+node_modules
+dist
+.env
+.env.*
+npm-debug.log*
+*.log
+test-results
+playwright-report
+blob-report
