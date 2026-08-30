@@ -72,6 +72,7 @@ echo "Reloaded case through API: $case_number"
 
 echo "Checking SQLite file inside the backend volume..."
 "${COMPOSE[@]}" exec -T backend sh -lc 'test -s /app/data/app.db && ls -l /app/data/app.db'
+"${COMPOSE[@]}" exec -T backend sh -lc 'test ! -e /app/prisma/dev.db && echo "OK: /app/prisma/dev.db is absent from the runtime image"'
 
 echo "Container state:"
 "${COMPOSE[@]}" ps
