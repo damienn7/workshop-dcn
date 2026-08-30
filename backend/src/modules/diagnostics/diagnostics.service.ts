@@ -1,5 +1,5 @@
-import { ApiError } from '../../shared/ApiError';
-import prisma from '../../db/prisma';
+import { ApiError } from '../../shared/ApiError.js';
+import prisma from '../../db/prisma.js';
 import {
   IdentificationSchema,
   FrameForkSchema,
@@ -7,7 +7,7 @@ import {
   TransmissionSchema,
   WheelsTiresSchema,
   FinishingSchema
-} from './diagnostics.schemas';
+} from './diagnostics.schemas.js';
 
 async function ensureCaseExists(caseNumber: string) {
   const c = await prisma.buybackCase.findUnique({ where: { caseNumber } });

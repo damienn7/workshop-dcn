@@ -1,9 +1,9 @@
 import express from 'express';
-import { asyncHandler } from '../../shared/asyncHandler';
-import { getCaseByNumber, setRefusal, setFinalOffer } from '../cases/cases.service';
-import { calculateScoreForCase, validateManualOfferAdjustment } from './scoring.service';
-import { ApiError } from '../../shared/ApiError';
-import prisma from '../../db/prisma';
+import { asyncHandler } from '../../shared/asyncHandler.js';
+import { getCaseByNumber, setRefusal, setFinalOffer } from '../cases/cases.service.js';
+import { calculateScoreForCase, validateManualOfferAdjustment } from './scoring.service.js';
+import { ApiError } from '../../shared/ApiError.js';
+import prisma from '../../db/prisma.js';
 
 const router = express.Router();
 

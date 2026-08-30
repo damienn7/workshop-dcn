@@ -1,4 +1,4 @@
-import { scoringConfig } from '../../data/scoring.config';
+import { scoringConfig } from '../../data/scoring.config.js';
 
 export function getBuybackBaseValue(estimatedBasePrice: number, score: number): number {
   let coefficient = 0;

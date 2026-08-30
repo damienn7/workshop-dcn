@@ -4,7 +4,7 @@ import {
   disconnectTestDatabase,
   prepareTestDatabase,
   resetTestDatabase
-} from './testDatabase';
+} from './testDatabase.js';
 
 configureTestDatabaseEnv();
 

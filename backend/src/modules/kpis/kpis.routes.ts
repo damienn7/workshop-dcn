@@ -1,6 +1,6 @@
 import express from 'express';
-import { asyncHandler } from '../../shared/asyncHandler';
-import { getKpisSummary } from './kpis.service';
+import { asyncHandler } from '../../shared/asyncHandler.js';
+import { getKpisSummary } from './kpis.service.js';
 
 const router = express.Router();
 

@@ -1,9 +1,9 @@
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 
-import app from '../../app';
-import prisma from '../../db/prisma';
-import { createBuybackCase } from '../../test/factories';
+import app from '../../app.js';
+import prisma from '../../db/prisma.js';
+import { createBuybackCase } from '../../test/factories.js';
 
 function parseJsonField<T>(value: string | null): T | null {
   return value ? JSON.parse(value) : null;

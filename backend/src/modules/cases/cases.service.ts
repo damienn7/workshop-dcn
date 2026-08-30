@@ -1,6 +1,6 @@
-import prisma from '../../db/prisma';
-import { NewCasePayload, BuybackCase } from './cases.schemas';
-import { ApiError } from '../../shared/ApiError';
+import prisma from '../../db/prisma.js';
+import type { NewCasePayload, BuybackCase } from './cases.schemas.js';
+import { ApiError } from '../../shared/ApiError.js';
 
 function mapDbCaseToApi(dbCase: any): BuybackCase {
   if (!dbCase) return undefined as any;

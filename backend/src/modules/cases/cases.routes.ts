@@ -1,9 +1,9 @@
 import express from 'express';
 import { z } from 'zod';
-import { asyncHandler } from '../../shared/asyncHandler';
-import * as service from './cases.service';
-import { NewCaseSchema } from './cases.schemas';
-import { ApiError } from '../../shared/ApiError';
+import { asyncHandler } from '../../shared/asyncHandler.js';
+import * as service from './cases.service.js';
+import { NewCaseSchema } from './cases.schemas.js';
+import { ApiError } from '../../shared/ApiError.js';
 
 const router = express.Router();
 

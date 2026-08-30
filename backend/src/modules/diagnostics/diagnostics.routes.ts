@@ -1,7 +1,7 @@
 import express from 'express';
-import { asyncHandler } from '../../shared/asyncHandler';
-import * as svc from './diagnostics.service';
-import { ApiError } from '../../shared/ApiError';
+import { asyncHandler } from '../../shared/asyncHandler.js';
+import * as svc from './diagnostics.service.js';
+import { ApiError } from '../../shared/ApiError.js';
 
 const router = express.Router();
 

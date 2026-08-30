@@ -1,8 +1,8 @@
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 
-import app from '../app';
-import { testDatabaseUrl } from './testDatabase';
+import app from '../app.js';
+import { testDatabaseUrl } from './testDatabase.js';
 
 describe('backend test infrastructure', () => {
   it('serves the health endpoint with the isolated test database configured', async () => {

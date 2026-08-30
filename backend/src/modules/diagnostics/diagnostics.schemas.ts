@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ArticleType } from '../cases/cases.schemas';
+import { ArticleType } from '../cases/cases.schemas.js';
 
 export const IdentificationSchema = z.object({
   articleType: ArticleType,

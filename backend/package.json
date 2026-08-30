@@ -12,15 +12,16 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "db:e2e:reset": "tsx src/test/e2eDatabase.ts",
-    "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev",
-    "db:seed": "tsx prisma/seed.ts",
-    "db:reset": "prisma migrate reset --force"
+    "db:generate": "DATABASE_URL=${DATABASE_URL:-file:./prisma/dev.db} prisma generate",
+    "db:migrate": "DATABASE_URL=${DATABASE_URL:-file:./prisma/dev.db} prisma migrate dev",
+    "db:seed": "DATABASE_URL=${DATABASE_URL:-file:./prisma/dev.db} tsx prisma/seed.ts",
+    "db:reset": "DATABASE_URL=${DATABASE_URL:-file:./prisma/dev.db} prisma migrate reset --force"
   },
   "dependencies": {
     "@prisma/client": "^5.8.0",
     "cors": "^2.8.5",
     "express": "^4.18.2",
+    "prisma": "^5.8.0",
     "zod": "^3.22.2"
   },
   "devDependencies": {
@@ -29,7 +30,6 @@
     "@types/node": "^18.16.19",
     "@types/supertest": "^7.2.1",
     "@vitest/coverage-v8": "^1.6.1",
-    "prisma": "^5.8.0",
     "supertest": "^7.2.2",
     "tsx": "^3.12.7",
     "typescript": "^5.4.2",

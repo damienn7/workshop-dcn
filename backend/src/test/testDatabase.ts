@@ -17,7 +17,7 @@ export function configureTestDatabaseEnv() {
 export async function prepareTestDatabase() {
   configureTestDatabaseEnv();
 
-  const { prisma } = await import('../db/prisma');
+  const { prisma } = await import('../db/prisma.js');
   await prisma.$disconnect().catch(() => undefined);
 
   fs.mkdirSync(testDbDir, { recursive: true });
@@ -47,7 +47,7 @@ export async function prepareTestDatabase() {
 }
 
 export async function resetTestDatabase() {
-  const { prisma } = await import('../db/prisma');
+  const { prisma } = await import('../db/prisma.js');
 
   await prisma.decision.deleteMany();
   await prisma.scoreResult.deleteMany();
@@ -58,6 +58,6 @@ export async function resetTestDatabase() {
 }
 
 export async function disconnectTestDatabase() {
-  const { prisma } = await import('../db/prisma');
+  const { prisma } = await import('../db/prisma.js');
   await prisma.$disconnect();
 }

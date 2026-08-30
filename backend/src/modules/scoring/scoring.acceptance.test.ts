@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import prisma from '../../db/prisma';
-import { calculateScoreForCase } from './scoring.service';
+import prisma from '../../db/prisma.js';
+import { calculateScoreForCase } from './scoring.service.js';
 
 type DiagnosisInput = {
   identification?: Record<string, unknown> | null;

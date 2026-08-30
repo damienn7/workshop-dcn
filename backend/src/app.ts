@@ -2,20 +2,34 @@ import express from 'express';
 import cors from 'cors';
 import { ZodError } from 'zod';
 
-import casesRouter from './modules/cases/cases.routes';
-import diagnosticsRouter from './modules/diagnostics/diagnostics.routes';
-import scoringRouter from './modules/scoring/scoring.routes';
-import kpisRouter from './modules/kpis/kpis.routes';
-import { ApiError } from './shared/ApiError';
+import casesRouter from './modules/cases/cases.routes.js';
+import diagnosticsRouter from './modules/diagnostics/diagnostics.routes.js';
+import scoringRouter from './modules/scoring/scoring.routes.js';
+import kpisRouter from './modules/kpis/kpis.routes.js';
+import { ApiError } from './shared/ApiError.js';
 
 const app = express();
 
-const allowedOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://127.0.0.1:5174'];
+const defaultAllowedOrigins = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:5174',
+  'http://127.0.0.1:5174'
+];
+
+const configuredAllowedOrigins = process.env.CORS_ORIGINS
+  ?.split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const allowedOrigins = configuredAllowedOrigins?.length
+  ? configuredAllowedOrigins
+  : defaultAllowedOrigins;
 
 app.use(express.json());
 app.use(
   cors({
-    origin: allowedOrigins
+    origin: allowedOrigins.includes('*') ? true : allowedOrigins
   })
 );
 

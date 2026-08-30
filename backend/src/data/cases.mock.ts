@@ -1,4 +1,4 @@
-import { BuybackCase } from '../modules/cases/cases.schemas';
+import type { BuybackCase } from '../modules/cases/cases.schemas.js';
 
 export const CASES: BuybackCase[] = [
   {

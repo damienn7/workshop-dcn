@@ -1,4 +1,4 @@
-import { CASES } from '../../data/cases.mock';
+import { CASES } from '../../data/cases.mock.js';
 
 export function getKpisSummary() {
   const totalCases = CASES.length;

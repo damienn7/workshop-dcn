@@ -1,8 +1,8 @@
-import { ApiError } from '../../shared/ApiError';
-import { getCaseByNumber, updateCase, setFinalOffer } from '../cases/cases.service';
-import { scoringConfig } from '../../data/scoring.config';
-import { getBuybackBaseValue, mapValueToScore } from './scoring.engine';
-import type { ScoringResult, RepairItem } from './scoring.types';
+import { ApiError } from '../../shared/ApiError.js';
+import { getCaseByNumber, updateCase, setFinalOffer } from '../cases/cases.service.js';
+import { scoringConfig } from '../../data/scoring.config.js';
+import { getBuybackBaseValue, mapValueToScore } from './scoring.engine.js';
+import type { ScoringResult, RepairItem } from './scoring.types.js';
 
 function computeCategoryScores(diagnosis: any, preDiagnostic: any) {
   const categories: Record<string, number> = {

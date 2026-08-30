@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { getBuybackBaseValue, mapValueToScore } from './scoring.engine';
+import { getBuybackBaseValue, mapValueToScore } from './scoring.engine.js';
 
 describe('getBuybackBaseValue', () => {
   it.each([
